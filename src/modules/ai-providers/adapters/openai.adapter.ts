@@ -8,7 +8,7 @@ import {
   CompletionResult,
   ProviderConnection,
 } from './ai-provider-adapter.interface';
-import { parseSse, providerFetch, trimTrailingSlash } from './provider-http';
+import { parseSse, upstreamFetch, trimTrailingSlash } from '../../../common/http/upstream-http';
 
 interface OpenAiUsage {
   prompt_tokens?: number;
@@ -63,14 +63,14 @@ export class OpenAiAdapter implements AiProviderAdapter {
   }
 
   async healthCheck(connection: ProviderConnection): Promise<void> {
-    await providerFetch(`${trimTrailingSlash(connection.baseUrl)}/models`, {
+    await upstreamFetch(`${trimTrailingSlash(connection.baseUrl)}/models`, {
       headers: this.headers(connection),
       timeoutMs: this.timeoutMs,
     });
   }
 
   private post(connection: ProviderConnection, request: CompletionRequest, stream: boolean) {
-    return providerFetch(`${trimTrailingSlash(connection.baseUrl)}/chat/completions`, {
+    return upstreamFetch(`${trimTrailingSlash(connection.baseUrl)}/chat/completions`, {
       method: 'POST',
       headers: this.headers(connection),
       timeoutMs: this.timeoutMs,

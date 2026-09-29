@@ -1,6 +1,6 @@
 import { BadGatewayException } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
-import { ProviderRequestError } from '../ai-providers/adapters/provider-http';
+import { UpstreamRequestError } from '../../common/http/upstream-http';
 import { AiProvidersService } from '../ai-providers/ai-providers.service';
 import { QuotaService } from '../subscriptions/quota.service';
 import { ChatService } from './chat.service';
@@ -50,7 +50,7 @@ describe('ChatService', () => {
   });
 
   it('refunds the quota, persists nothing and returns 502 when the provider fails', async () => {
-    adapter.complete.mockRejectedValue(new ProviderRequestError('Upstream exploded', 500));
+    adapter.complete.mockRejectedValue(new UpstreamRequestError('Upstream exploded', 500));
 
     const error = await service.send('u1', { content: 'Hello' }).catch((e: unknown) => e);
 

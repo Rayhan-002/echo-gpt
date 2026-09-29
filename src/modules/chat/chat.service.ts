@@ -7,7 +7,7 @@ import {
   ChatMessageInput,
   TokenUsage,
 } from '../ai-providers/adapters/ai-provider-adapter.interface';
-import { ProviderRequestError } from '../ai-providers/adapters/provider-http';
+import { UpstreamRequestError } from '../../common/http/upstream-http';
 import { QuotaService } from '../subscriptions/quota.service';
 import { ConversationsService } from './conversations.service';
 import {
@@ -234,7 +234,7 @@ export class ChatService {
   }
 
   private toHttpError(chat: PreparedChat, error: unknown): Error {
-    if (error instanceof ProviderRequestError) {
+    if (error instanceof UpstreamRequestError) {
       const { provider } = chat.resolved;
       this.logger.warn(
         `Provider ${provider.name} failed (status ${error.status ?? 'n/a'}): ${error.message}`,

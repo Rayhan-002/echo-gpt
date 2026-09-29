@@ -1,4 +1,4 @@
-import { parseSse, ProviderRequestError, providerFetch } from './provider-http';
+import { parseSse, UpstreamRequestError, upstreamFetch } from './upstream-http';
 
 const streamOf = (...chunks: string[]) =>
   new ReadableStream<Uint8Array>({
@@ -38,7 +38,7 @@ describe('parseSse', () => {
   });
 });
 
-describe('providerFetch', () => {
+describe('upstreamFetch', () => {
   afterEach(() => jest.restoreAllMocks());
 
   it.each([
@@ -50,18 +50,18 @@ describe('providerFetch', () => {
       .spyOn(global, 'fetch')
       .mockResolvedValue(new Response(JSON.stringify(body), { status: 401 }));
 
-    const error = await providerFetch('https://vendor.test', {
+    const error = await upstreamFetch('https://vendor.test', {
       headers: {},
       timeoutMs: 1000,
     }).catch((e: unknown) => e);
-    expect(error).toBeInstanceOf(ProviderRequestError);
+    expect(error).toBeInstanceOf(UpstreamRequestError);
     expect(error).toMatchObject({ message: expected, status: 401 });
   });
 
   it('wraps network failures', async () => {
     jest.spyOn(global, 'fetch').mockRejectedValue(new TypeError('fetch failed'));
     await expect(
-      providerFetch('https://vendor.test', { headers: {}, timeoutMs: 1000 }),
+      upstreamFetch('https://vendor.test', { headers: {}, timeoutMs: 1000 }),
     ).rejects.toThrow('Could not reach provider: fetch failed');
   });
 });

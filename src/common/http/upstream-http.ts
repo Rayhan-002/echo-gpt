@@ -1,15 +1,18 @@
-/** Failure talking to an upstream AI vendor. `status` is the upstream HTTP status, if any. */
-export class ProviderRequestError extends Error {
+/**
+ * Failure talking to an upstream service (AI vendor, search engine).
+ * `status` is the upstream HTTP status, if any.
+ */
+export class UpstreamRequestError extends Error {
   constructor(
     message: string,
     readonly status?: number,
   ) {
     super(message);
-    this.name = 'ProviderRequestError';
+    this.name = 'UpstreamRequestError';
   }
 }
 
-interface ProviderFetchOptions {
+interface UpstreamFetchOptions {
   method?: 'GET' | 'POST';
   headers: Record<string, string>;
   body?: unknown;
@@ -19,10 +22,10 @@ interface ProviderFetchOptions {
 }
 
 /**
- * fetch() wrapper for vendor APIs: JSON encoding, header timeout, caller
+ * fetch() wrapper for upstream APIs: JSON encoding, header timeout, caller
  * cancellation and normalized error messages.
  */
-export async function providerFetch(url: string, options: ProviderFetchOptions): Promise<Response> {
+export async function upstreamFetch(url: string, options: UpstreamFetchOptions): Promise<Response> {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(new Error('timeout')), options.timeoutMs);
   const onCallerAbort = () => controller.abort(options.signal?.reason);
@@ -38,7 +41,7 @@ export async function providerFetch(url: string, options: ProviderFetchOptions):
     });
   } catch (error) {
     const timedOut = controller.signal.reason instanceof Error && !options.signal?.aborted;
-    throw new ProviderRequestError(
+    throw new UpstreamRequestError(
       timedOut
         ? `Provider did not respond within ${options.timeoutMs}ms`
         : `Could not reach provider: ${(error as Error).message}`,
@@ -49,7 +52,7 @@ export async function providerFetch(url: string, options: ProviderFetchOptions):
   }
 
   if (!response.ok) {
-    throw new ProviderRequestError(
+    throw new UpstreamRequestError(
       extractErrorMessage(await response.text()) ?? `HTTP ${response.status}`,
       response.status,
     );

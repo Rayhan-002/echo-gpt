@@ -8,7 +8,12 @@ import {
   CompletionResult,
   ProviderConnection,
 } from './ai-provider-adapter.interface';
-import { parseSse, ProviderRequestError, providerFetch, trimTrailingSlash } from './provider-http';
+import {
+  parseSse,
+  UpstreamRequestError,
+  upstreamFetch,
+  trimTrailingSlash,
+} from '../../../common/http/upstream-http';
 
 const ANTHROPIC_VERSION = '2023-06-01';
 /** The Messages API requires max_tokens. */
@@ -81,13 +86,13 @@ export class AnthropicAdapter implements AiProviderAdapter {
           };
           break;
         case 'error':
-          throw new ProviderRequestError(event.error?.message ?? 'Anthropic stream error');
+          throw new UpstreamRequestError(event.error?.message ?? 'Anthropic stream error');
       }
     }
   }
 
   async healthCheck(connection: ProviderConnection): Promise<void> {
-    await providerFetch(`${trimTrailingSlash(connection.baseUrl)}/v1/models?limit=1`, {
+    await upstreamFetch(`${trimTrailingSlash(connection.baseUrl)}/v1/models?limit=1`, {
       headers: this.headers(connection),
       timeoutMs: this.timeoutMs,
     });
@@ -99,7 +104,7 @@ export class AnthropicAdapter implements AiProviderAdapter {
       .map((message) => message.content)
       .join('\n\n');
 
-    return providerFetch(`${trimTrailingSlash(connection.baseUrl)}/v1/messages`, {
+    return upstreamFetch(`${trimTrailingSlash(connection.baseUrl)}/v1/messages`, {
       method: 'POST',
       headers: this.headers(connection),
       timeoutMs: this.timeoutMs,

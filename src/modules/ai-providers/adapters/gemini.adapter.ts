@@ -8,7 +8,7 @@ import {
   CompletionResult,
   ProviderConnection,
 } from './ai-provider-adapter.interface';
-import { parseSse, providerFetch, trimTrailingSlash } from './provider-http';
+import { parseSse, upstreamFetch, trimTrailingSlash } from '../../../common/http/upstream-http';
 
 interface GeminiResponse {
   modelVersion?: string;
@@ -67,7 +67,7 @@ export class GeminiAdapter implements AiProviderAdapter {
   }
 
   async healthCheck(connection: ProviderConnection): Promise<void> {
-    await providerFetch(`${trimTrailingSlash(connection.baseUrl)}/models?pageSize=1`, {
+    await upstreamFetch(`${trimTrailingSlash(connection.baseUrl)}/models?pageSize=1`, {
       headers: this.headers(connection),
       timeoutMs: this.timeoutMs,
     });
@@ -79,7 +79,7 @@ export class GeminiAdapter implements AiProviderAdapter {
       .map((message) => ({ text: message.content }));
 
     const model = encodeURIComponent(request.model);
-    return providerFetch(`${trimTrailingSlash(connection.baseUrl)}/models/${model}:${action}`, {
+    return upstreamFetch(`${trimTrailingSlash(connection.baseUrl)}/models/${model}:${action}`, {
       method: 'POST',
       headers: this.headers(connection),
       timeoutMs: this.timeoutMs,
