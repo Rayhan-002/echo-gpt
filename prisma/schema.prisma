@@ -1,0 +1,358 @@
+// EchoGPT database schema (PostgreSQL).
+//
+// Conventions:
+// - Tables and columns are snake_case (@@map / @map); Prisma models stay PascalCase/camelCase.
+// - Entity primary keys are UUIDs; small reference tables (roles, plans) use serial ints;
+//   the high-volume api_usage_logs table uses a bigint identity.
+// - All timestamps are timestamptz.
+// - Partial unique indexes Prisma cannot express (one ACTIVE subscription per user,
+//   a single default AI provider) live in the migration SQL.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ---------------------------------------------------------------------------
+// Enums
+// ---------------------------------------------------------------------------
+
+enum RoleName {
+  ADMIN
+  USER
+
+  @@map("role_name")
+}
+
+enum TokenType {
+  EMAIL_VERIFICATION
+  PASSWORD_RESET
+
+  @@map("token_type")
+}
+
+enum PlanCode {
+  FREE
+  PREMIUM
+
+  @@map("plan_code")
+}
+
+enum SubscriptionStatus {
+  ACTIVE
+  CANCELED
+  EXPIRED
+
+  @@map("subscription_status")
+}
+
+enum AiProviderType {
+  OPENAI
+  ANTHROPIC
+  GEMINI
+
+  @@map("ai_provider_type")
+}
+
+enum ProviderHealthStatus {
+  UNKNOWN
+  HEALTHY
+  UNHEALTHY
+
+  @@map("provider_health_status")
+}
+
+enum MessageRole {
+  SYSTEM
+  USER
+  ASSISTANT
+
+  @@map("message_role")
+}
+
+// ---------------------------------------------------------------------------
+// Identity & access
+// ---------------------------------------------------------------------------
+
+model Role {
+  id          Int      @id @default(autoincrement())
+  name        RoleName @unique
+  description String?  @db.VarChar(255)
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  users User[]
+
+  @@map("roles")
+}
+
+model User {
+  id              String    @id @default(uuid()) @db.Uuid
+  /// Always stored lower-cased.
+  email           String    @unique @db.VarChar(255)
+  passwordHash    String    @map("password_hash") @db.VarChar(255)
+  fullName        String?   @map("full_name") @db.VarChar(100)
+  avatarUrl       String?   @map("avatar_url") @db.VarChar(2048)
+  roleId          Int       @map("role_id")
+  isActive        Boolean   @default(true) @map("is_active")
+  emailVerifiedAt DateTime? @map("email_verified_at") @db.Timestamptz(3)
+  lastLoginAt     DateTime? @map("last_login_at") @db.Timestamptz(3)
+  createdAt       DateTime  @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt       DateTime  @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  role               Role                @relation(fields: [roleId], references: [id], onDelete: Restrict)
+  sessions           Session[]
+  verificationTokens VerificationToken[]
+  subscriptions      Subscription[]
+  usageCounters      UsageCounter[]
+  conversations      Conversation[]
+  webSearches        WebSearch[]
+  apiUsageLogs       ApiUsageLog[]
+
+  @@index([roleId])
+  @@index([createdAt])
+  @@map("users")
+}
+
+/// One row per logged-in device. Holds the hash of the current (rotating) refresh token.
+model Session {
+  id               String    @id @default(uuid()) @db.Uuid
+  userId           String    @map("user_id") @db.Uuid
+  refreshTokenHash String    @map("refresh_token_hash") @db.Char(64)
+  userAgent        String?   @map("user_agent") @db.VarChar(512)
+  ipAddress        String?   @map("ip_address") @db.VarChar(45)
+  expiresAt        DateTime  @map("expires_at") @db.Timestamptz(3)
+  lastUsedAt       DateTime  @default(now()) @map("last_used_at") @db.Timestamptz(3)
+  revokedAt        DateTime? @map("revoked_at") @db.Timestamptz(3)
+  createdAt        DateTime  @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([expiresAt])
+  @@map("sessions")
+}
+
+/// Single-use tokens for email verification and password reset (only the SHA-256 hash is stored).
+model VerificationToken {
+  id        String    @id @default(uuid()) @db.Uuid
+  userId    String    @map("user_id") @db.Uuid
+  type      TokenType
+  tokenHash String    @unique @map("token_hash") @db.Char(64)
+  expiresAt DateTime  @map("expires_at") @db.Timestamptz(3)
+  usedAt    DateTime? @map("used_at") @db.Timestamptz(3)
+  createdAt DateTime  @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, type])
+  @@map("verification_tokens")
+}
+
+// ---------------------------------------------------------------------------
+// Billing & quotas
+// ---------------------------------------------------------------------------
+
+model Plan {
+  id                Int      @id @default(autoincrement())
+  code              PlanCode @unique
+  name              String   @db.VarChar(50)
+  description       String?  @db.VarChar(500)
+  priceCents        Int      @default(0) @map("price_cents")
+  currency          String   @default("USD") @db.Char(3)
+  /// AI requests (chat messages + AI-assisted searches) allowed per UTC day.
+  dailyRequestLimit Int      @map("daily_request_limit")
+  features          String[] @default([])
+  isActive          Boolean  @default(true) @map("is_active")
+  createdAt         DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt         DateTime @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  subscriptions Subscription[]
+
+  @@map("plans")
+}
+
+/// Subscription history. At most one ACTIVE row per user (partial unique index in migration).
+model Subscription {
+  id               String             @id @default(uuid()) @db.Uuid
+  userId           String             @map("user_id") @db.Uuid
+  planId           Int                @map("plan_id")
+  status           SubscriptionStatus @default(ACTIVE)
+  startedAt        DateTime           @default(now()) @map("started_at") @db.Timestamptz(3)
+  /// Null for plans that never expire (FREE).
+  currentPeriodEnd DateTime?          @map("current_period_end") @db.Timestamptz(3)
+  canceledAt       DateTime?          @map("canceled_at") @db.Timestamptz(3)
+  createdAt        DateTime           @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt        DateTime           @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  plan Plan @relation(fields: [planId], references: [id], onDelete: Restrict)
+
+  @@index([userId, status])
+  @@index([planId, status])
+  @@map("subscriptions")
+}
+
+/// Per-user, per-day AI request counter. Incremented atomically with a guarded upsert.
+model UsageCounter {
+  userId       String   @map("user_id") @db.Uuid
+  periodStart  DateTime @map("period_start") @db.Date
+  requestCount Int      @default(0) @map("request_count")
+  updatedAt    DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([userId, periodStart])
+  @@index([periodStart])
+  @@map("usage_counters")
+}
+
+// ---------------------------------------------------------------------------
+// AI providers
+// ---------------------------------------------------------------------------
+
+model AiProvider {
+  id                  String               @id @default(uuid()) @db.Uuid
+  name                String               @unique @db.VarChar(100)
+  type                AiProviderType
+  /// Optional override of the vendor API base URL (proxies, Azure/OpenAI-compatible gateways).
+  baseUrl             String?              @map("base_url") @db.VarChar(2048)
+  /// AES-256-GCM ciphertext (iv.tag.ciphertext, base64). Never returned by the API.
+  apiKeyEncrypted     String               @map("api_key_encrypted")
+  apiKeyLast4         String               @map("api_key_last4") @db.VarChar(4)
+  defaultModel        String               @map("default_model") @db.VarChar(100)
+  models              String[]             @default([])
+  isEnabled           Boolean              @default(true) @map("is_enabled")
+  /// At most one row may be default (partial unique index in migration).
+  isDefault           Boolean              @default(false) @map("is_default")
+  healthStatus        ProviderHealthStatus @default(UNKNOWN) @map("health_status")
+  lastHealthCheckAt   DateTime?            @map("last_health_check_at") @db.Timestamptz(3)
+  lastHealthLatencyMs Int?                 @map("last_health_latency_ms")
+  lastHealthError     String?              @map("last_health_error") @db.VarChar(1000)
+  createdAt           DateTime             @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt           DateTime             @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  conversations Conversation[]
+  messages      Message[]
+  webSearches   WebSearch[]
+
+  @@index([type])
+  @@index([isEnabled])
+  @@map("ai_providers")
+}
+
+// ---------------------------------------------------------------------------
+// Chat history
+// ---------------------------------------------------------------------------
+
+model Conversation {
+  id           String   @id @default(uuid()) @db.Uuid
+  userId       String   @map("user_id") @db.Uuid
+  title        String   @db.VarChar(200)
+  /// Provider/model used by default for new messages in this conversation.
+  providerId   String?  @map("provider_id") @db.Uuid
+  model        String?  @db.VarChar(100)
+  systemPrompt String?  @map("system_prompt") @db.Text
+  createdAt    DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt    DateTime @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  user     User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  provider AiProvider? @relation(fields: [providerId], references: [id], onDelete: SetNull)
+  messages Message[]
+
+  @@index([userId, updatedAt(sort: Desc)])
+  @@index([providerId])
+  @@map("conversations")
+}
+
+model Message {
+  id               String      @id @default(uuid()) @db.Uuid
+  conversationId   String      @map("conversation_id") @db.Uuid
+  role             MessageRole
+  content          String      @db.Text
+  /// Provider/model that produced an ASSISTANT message.
+  providerId       String?     @map("provider_id") @db.Uuid
+  model            String?     @db.VarChar(100)
+  promptTokens     Int?        @map("prompt_tokens")
+  completionTokens Int?        @map("completion_tokens")
+  latencyMs        Int?        @map("latency_ms")
+  createdAt        DateTime    @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  provider     AiProvider?  @relation(fields: [providerId], references: [id], onDelete: SetNull)
+
+  @@index([conversationId, createdAt])
+  @@index([providerId, createdAt])
+  @@map("messages")
+}
+
+// ---------------------------------------------------------------------------
+// Web search
+// ---------------------------------------------------------------------------
+
+model WebSearch {
+  id              String   @id @default(uuid()) @db.Uuid
+  userId          String   @map("user_id") @db.Uuid
+  query           String   @db.VarChar(500)
+  /// Lower-cased, whitespace-collapsed query used for suggestions and caching.
+  normalizedQuery String   @map("normalized_query") @db.VarChar(500)
+  engine          String   @db.VarChar(30)
+  resultCount     Int      @map("result_count")
+  /// Snapshot of the results returned to the user.
+  results         Json
+  aiSummary       String?  @map("ai_summary") @db.Text
+  providerId      String?  @map("provider_id") @db.Uuid
+  fromCache       Boolean  @default(false) @map("from_cache")
+  createdAt       DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  user     User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  provider AiProvider? @relation(fields: [providerId], references: [id], onDelete: SetNull)
+
+  @@index([userId, createdAt(sort: Desc)])
+  @@index([normalizedQuery])
+  @@map("web_searches")
+}
+
+/// Shared cache of raw search engine results, keyed by sha256(engine + normalized query).
+model SearchCache {
+  key       String   @id @db.Char(64)
+  engine    String   @db.VarChar(30)
+  query     String   @db.VarChar(500)
+  results   Json
+  expiresAt DateTime @map("expires_at") @db.Timestamptz(3)
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  @@index([expiresAt])
+  @@map("search_cache")
+}
+
+// ---------------------------------------------------------------------------
+// Observability
+// ---------------------------------------------------------------------------
+
+/// One row per API request (written asynchronously by the request logging interceptor).
+model ApiUsageLog {
+  id         BigInt   @id @default(autoincrement())
+  requestId  String?  @map("request_id") @db.VarChar(64)
+  userId     String?  @map("user_id") @db.Uuid
+  method     String   @db.VarChar(10)
+  path       String   @db.VarChar(2048)
+  /// Route template, e.g. /api/v1/chat/conversations/:id (used for grouping).
+  route      String?  @db.VarChar(255)
+  statusCode Int      @map("status_code") @db.SmallInt
+  durationMs Int      @map("duration_ms")
+  ipAddress  String?  @map("ip_address") @db.VarChar(45)
+  userAgent  String?  @map("user_agent") @db.VarChar(512)
+  createdAt  DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([createdAt])
+  @@index([userId, createdAt])
+  @@index([route, createdAt])
+  @@index([statusCode, createdAt])
+  @@map("api_usage_logs")
+}
