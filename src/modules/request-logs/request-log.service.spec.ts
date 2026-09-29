@@ -43,8 +43,8 @@ describe('RequestLogService', () => {
     service.record(entry('deleted'));
     await service.flush();
 
-    const [{ data }] = prisma.apiUsageLog.createMany.mock.calls[0];
-    expect(data.map((row: RequestLogEntry) => row.userId)).toEqual(['alive', null]);
+    const [{ data }] = prisma.apiUsageLog.createMany.mock.calls[0] as [{ data: RequestLogEntry[] }];
+    expect(data.map((row) => row.userId)).toEqual(['alive', null]);
   });
 
   it('swallows database errors so logging never breaks requests', async () => {
