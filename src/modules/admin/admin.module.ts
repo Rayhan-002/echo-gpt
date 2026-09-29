@@ -5,6 +5,8 @@ import { SessionsModule } from '../sessions/sessions.module';
 import { SubscriptionsModule } from '../subscriptions/subscriptions.module';
 import { UsersModule } from '../users/users.module';
 import { AdminAnalyticsController } from './controllers/admin-analytics.controller';
+import { AdminDashboardController } from './controllers/admin-dashboard.controller';
+import { AdminLogsController } from './controllers/admin-logs.controller';
 import { AdminSubscriptionsController } from './controllers/admin-subscriptions.controller';
 import { AdminSystemController } from './controllers/admin-system.controller';
 import { AdminUsersController } from './controllers/admin-users.controller';
@@ -20,7 +22,9 @@ import { SystemService } from './services/system.service';
 @Module({
   imports: [UsersModule, SessionsModule, SubscriptionsModule, AiProvidersModule, SearchModule],
   controllers: [
+    AdminDashboardController,
     AdminAnalyticsController,
+    AdminLogsController,
     AdminUsersController,
     AdminSubscriptionsController,
     AdminSystemController,

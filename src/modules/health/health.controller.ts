@@ -1,5 +1,5 @@
 import { Controller, Get, VERSION_NEUTRAL } from '@nestjs/common';
-import { ApiOperation, ApiTags } from '@nestjs/swagger';
+import { ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { SkipThrottle } from '@nestjs/throttler';
 import {
   HealthCheck,
@@ -26,6 +26,7 @@ export class HealthController {
 
   @Get('live')
   @ApiOperation({ summary: 'Liveness probe', description: 'Returns 200 while the process is up.' })
+  @ApiOkResponse({ schema: { example: { status: 'ok' } } })
   live() {
     return { status: 'ok' };
   }
