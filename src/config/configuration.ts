@@ -15,7 +15,7 @@ export interface AppConfig {
   };
   auth: {
     accessSecret: string;
-    accessTtl: string;
+    accessTtlSeconds: number;
     refreshTtlDays: number;
     emailVerificationTtlHours: number;
     passwordResetTtlMinutes: number;
@@ -72,7 +72,7 @@ export default (): AppConfig => {
     },
     auth: {
       accessSecret: env.JWT_ACCESS_SECRET as string,
-      accessTtl: env.JWT_ACCESS_TTL ?? '15m',
+      accessTtlSeconds: Number(env.JWT_ACCESS_TTL_SECONDS ?? 900),
       refreshTtlDays: Number(env.REFRESH_TOKEN_TTL_DAYS ?? 30),
       emailVerificationTtlHours: Number(env.EMAIL_VERIFICATION_TTL_HOURS ?? 24),
       passwordResetTtlMinutes: Number(env.PASSWORD_RESET_TTL_MINUTES ?? 30),
