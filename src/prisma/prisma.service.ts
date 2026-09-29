@@ -1,10 +1,10 @@
-import { Injectable, Logger, OnModuleDestroy, OnModuleInit } from '@nestjs/common';
+import { Injectable, Logger, OnApplicationShutdown, OnModuleInit } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { PrismaClient } from '@prisma/client';
 import { AppConfig } from '../config/configuration';
 
 @Injectable()
-export class PrismaService extends PrismaClient implements OnModuleInit, OnModuleDestroy {
+export class PrismaService extends PrismaClient implements OnModuleInit, OnApplicationShutdown {
   private readonly logger = new Logger(PrismaService.name);
 
   constructor(config: ConfigService<AppConfig, true>) {
@@ -20,7 +20,11 @@ export class PrismaService extends PrismaClient implements OnModuleInit, OnModul
     this.logger.log('Database connection established');
   }
 
-  async onModuleDestroy(): Promise<void> {
+  /**
+   * Disconnect in the last shutdown phase, after every module's onModuleDestroy
+   * (e.g. the request-log buffer flush) has run.
+   */
+  async onApplicationShutdown(): Promise<void> {
     await this.$disconnect();
   }
 }
