@@ -41,6 +41,9 @@ export interface AppConfig {
     tavilyApiKey: string;
     cacheTtlSeconds: number;
   };
+  logs: {
+    retentionDays: number;
+  };
 }
 
 const toBool = (value: string | undefined): boolean => value === 'true' || value === '1';
@@ -97,6 +100,9 @@ export default (): AppConfig => {
       engine: (env.SEARCH_ENGINE as 'duckduckgo' | 'tavily') ?? 'duckduckgo',
       tavilyApiKey: env.TAVILY_API_KEY ?? '',
       cacheTtlSeconds: Number(env.SEARCH_CACHE_TTL_SECONDS ?? 3600),
+    },
+    logs: {
+      retentionDays: Number(env.API_LOG_RETENTION_DAYS ?? 90),
     },
   };
 };

@@ -29,6 +29,6 @@ const SEARCH_TIMEOUT_MS = 10_000;
       },
     },
   ],
-  exports: [SearchCacheService],
+  exports: [SearchCacheService, SEARCH_ENGINE],
 })
 export class SearchModule {}

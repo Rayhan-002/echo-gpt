@@ -50,4 +50,6 @@ export const envValidationSchema = Joi.object({
     .default('')
     .when('SEARCH_ENGINE', { is: 'tavily', then: Joi.string().required() }),
   SEARCH_CACHE_TTL_SECONDS: Joi.number().integer().min(0).default(3600),
+
+  API_LOG_RETENTION_DAYS: Joi.number().integer().min(1).default(90),
 });
