@@ -6,6 +6,7 @@ import {
   HttpStatus,
   Logger,
 } from '@nestjs/common';
+import { Prisma } from '@prisma/client';
 import type { Request, Response } from 'express';
 import { STATUS_CODES } from 'node:http';
 import { ErrorResponseDto } from '../dto/error-response.dto';
@@ -33,10 +34,16 @@ export class AllExceptionsFilter implements ExceptionFilter {
     const { status, message, details } = this.normalize(exception);
 
     if (status >= Number(HttpStatus.INTERNAL_SERVER_ERROR)) {
-      this.logger.error(
-        `${request.method} ${request.originalUrl} -> ${status} [${request.requestId}]`,
-        exception instanceof Error ? exception.stack : String(exception),
-      );
+      const summary = `${request.method} ${request.originalUrl} -> ${status} [${request.requestId}]`;
+      if (exception instanceof HttpException) {
+        // Deliberate 5xx (e.g. upstream provider failure): no stack trace needed.
+        this.logger.warn(`${summary}: ${message}`);
+      } else {
+        this.logger.error(
+          summary,
+          exception instanceof Error ? exception.stack : String(exception),
+        );
+      }
     }
 
     // Streaming endpoints may already have flushed headers.
@@ -74,9 +81,37 @@ export class AllExceptionsFilter implements ExceptionFilter {
       return { status, message: message ?? exception.message };
     }
 
+    if (exception instanceof Prisma.PrismaClientKnownRequestError) {
+      const mapped = this.fromPrismaError(exception);
+      if (mapped) return mapped;
+    }
+
     return {
       status: HttpStatus.INTERNAL_SERVER_ERROR,
       message: 'An unexpected error occurred',
     };
+  }
+
+  /** Maps well-known Prisma errors that escaped the service layer to HTTP semantics. */
+  private fromPrismaError(error: Prisma.PrismaClientKnownRequestError): NormalizedError | null {
+    switch (error.code) {
+      case 'P2002': {
+        const target = error.meta?.target;
+        const fields = Array.isArray(target) ? target.join(', ') : 'unique field';
+        return {
+          status: HttpStatus.CONFLICT,
+          message: `A record with this ${fields} already exists`,
+        };
+      }
+      case 'P2025':
+        return { status: HttpStatus.NOT_FOUND, message: 'Resource not found' };
+      case 'P2003':
+        return {
+          status: HttpStatus.CONFLICT,
+          message: 'Operation conflicts with a related record',
+        };
+      default:
+        return null;
+    }
   }
 }

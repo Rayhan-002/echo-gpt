@@ -1,5 +1,5 @@
 import { INestApplication } from '@nestjs/common';
-import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import { DocumentBuilder, OpenAPIObject, SwaggerModule } from '@nestjs/swagger';
 
 export const SWAGGER_PATH = 'docs';
 export const BEARER_AUTH = 'access-token';
@@ -20,7 +20,7 @@ The \`x-request-id\` response header echoes the correlation id for support/debug
 AI endpoints (chat, AI-assisted search) consume the caller's daily plan quota. Exceeding it returns **429**.
 `;
 
-export function setupSwagger(app: INestApplication): void {
+export function createOpenApiDocument(app: INestApplication): OpenAPIObject {
   const config = new DocumentBuilder()
     .setTitle('EchoGPT API')
     .setDescription(DESCRIPTION)
@@ -36,22 +36,28 @@ export function setupSwagger(app: INestApplication): void {
     .addTag('Providers', 'Enabled AI providers available to users')
     .addTag('Chat', 'Conversations with AI providers (incl. streaming)')
     .addTag('Search', 'AI-assisted web search')
-    .addTag('Admin', 'Administrative dashboard & management (ADMIN role)')
+    .addTag('Admin: Dashboard', 'Headline statistics (ADMIN)')
+    .addTag('Admin: Users', 'User management: roles, activation, sessions (ADMIN)')
+    .addTag('Admin: Subscriptions', 'Subscriptions and plan configuration (ADMIN)')
+    .addTag('Admin: AI Providers', 'Manage AI providers, API keys, defaults and health (ADMIN)')
+    .addTag('Admin: Analytics', 'API usage analytics (ADMIN)')
+    .addTag('Admin: Logs', 'API request logs (ADMIN)')
+    .addTag('Admin: System', 'System health and maintenance (ADMIN)')
     .build();
 
-  const document = SwaggerModule.createDocument(app, config, {
+  return SwaggerModule.createDocument(app, config, {
     operationIdFactory: (controllerKey, methodKey) =>
       `${controllerKey.replace(/Controller$/, '')}_${methodKey}`,
   });
+}
 
-  SwaggerModule.setup(SWAGGER_PATH, app, document, {
+export function setupSwagger(app: INestApplication): void {
+  SwaggerModule.setup(SWAGGER_PATH, app, createOpenApiDocument(app), {
     jsonDocumentUrl: `${SWAGGER_PATH}/openapi.json`,
     customSiteTitle: 'EchoGPT API Docs',
     swaggerOptions: {
       persistAuthorization: true,
       displayRequestDuration: true,
-      tagsSorter: 'alpha',
-      operationsSorter: 'alpha',
     },
   });
 }

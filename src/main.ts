@@ -1,42 +1,20 @@
-import { ConsoleLogger, Logger, ValidationPipe, VersioningType } from '@nestjs/common';
+import { ConsoleLogger, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { NestFactory } from '@nestjs/core';
 import type { NestExpressApplication } from '@nestjs/platform-express';
-import helmet from 'helmet';
 import { AppModule } from './app.module';
+import { configureApp } from './app.setup';
 import { AppConfig } from './config/configuration';
 import { setupSwagger, SWAGGER_PATH } from './swagger';
 
 async function bootstrap(): Promise<void> {
   const app = await NestFactory.create<NestExpressApplication>(AppModule, { bufferLogs: true });
-  const config = app.get<ConfigService<AppConfig, true>>(ConfigService);
-  const appConfig = config.get('app', { infer: true });
-
-  app.useLogger(new ConsoleLogger({ json: appConfig.logJson, colors: !appConfig.logJson }));
-
-  // Respect X-Forwarded-* from the first proxy hop (load balancer / ingress) so
-  // req.ip reflects the real client for rate limiting and request logs.
-  app.set('trust proxy', 1);
-  app.use(helmet());
-  app.enableCors({
-    // Chrome extensions call from `chrome-extension://<id>` origins; list them in CORS_ORIGINS.
-    origin: appConfig.corsOrigins.length ? appConfig.corsOrigins : appConfig.env !== 'production',
-    credentials: true,
-    exposedHeaders: ['x-request-id'],
+  const appConfig = app.get<ConfigService<AppConfig, true>>(ConfigService).get('app', {
+    infer: true,
   });
 
-  app.setGlobalPrefix(appConfig.apiPrefix);
-  app.enableVersioning({ type: VersioningType.URI, defaultVersion: '1' });
-  app.useGlobalPipes(
-    new ValidationPipe({
-      whitelist: true,
-      forbidNonWhitelisted: true,
-      transform: true,
-      transformOptions: { enableImplicitConversion: false },
-    }),
-  );
-  app.enableShutdownHooks();
-
+  app.useLogger(new ConsoleLogger({ json: appConfig.logJson, colors: !appConfig.logJson }));
+  configureApp(app);
   if (appConfig.swaggerEnabled) {
     setupSwagger(app);
   }

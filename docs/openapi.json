@@ -1,0 +1,6855 @@
+{
+  "openapi": "3.0.0",
+  "paths": {
+    "/api/health/live": {
+      "get": {
+        "description": "Returns 200 while the process is up.",
+        "operationId": "Health_live",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "status": "ok"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "summary": "Liveness probe",
+        "tags": [
+          "Health"
+        ]
+      }
+    },
+    "/api/health": {
+      "get": {
+        "description": "Checks the database and memory. Returns 503 when any dependency is down.",
+        "operationId": "Health_check",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "The Health Check is successful",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "example": "ok"
+                    },
+                    "info": {
+                      "type": "object",
+                      "example": {
+                        "database": {
+                          "status": "up"
+                        }
+                      },
+                      "additionalProperties": {
+                        "type": "object",
+                        "required": [
+                          "status"
+                        ],
+                        "properties": {
+                          "status": {
+                            "type": "string"
+                          }
+                        },
+                        "additionalProperties": true
+                      },
+                      "nullable": true
+                    },
+                    "error": {
+                      "type": "object",
+                      "example": {},
+                      "additionalProperties": {
+                        "type": "object",
+                        "required": [
+                          "status"
+                        ],
+                        "properties": {
+                          "status": {
+                            "type": "string"
+                          }
+                        },
+                        "additionalProperties": true
+                      },
+                      "nullable": true
+                    },
+                    "details": {
+                      "type": "object",
+                      "example": {
+                        "database": {
+                          "status": "up"
+                        }
+                      },
+                      "additionalProperties": {
+                        "type": "object",
+                        "required": [
+                          "status"
+                        ],
+                        "properties": {
+                          "status": {
+                            "type": "string"
+                          }
+                        },
+                        "additionalProperties": true
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "The Health Check is not successful",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "example": "error"
+                    },
+                    "info": {
+                      "type": "object",
+                      "example": {
+                        "database": {
+                          "status": "up"
+                        }
+                      },
+                      "additionalProperties": {
+                        "type": "object",
+                        "required": [
+                          "status"
+                        ],
+                        "properties": {
+                          "status": {
+                            "type": "string"
+                          }
+                        },
+                        "additionalProperties": true
+                      },
+                      "nullable": true
+                    },
+                    "error": {
+                      "type": "object",
+                      "example": {
+                        "redis": {
+                          "status": "down",
+                          "message": "Could not connect"
+                        }
+                      },
+                      "additionalProperties": {
+                        "type": "object",
+                        "required": [
+                          "status"
+                        ],
+                        "properties": {
+                          "status": {
+                            "type": "string"
+                          }
+                        },
+                        "additionalProperties": true
+                      },
+                      "nullable": true
+                    },
+                    "details": {
+                      "type": "object",
+                      "example": {
+                        "database": {
+                          "status": "up"
+                        },
+                        "redis": {
+                          "status": "down",
+                          "message": "Could not connect"
+                        }
+                      },
+                      "additionalProperties": {
+                        "type": "object",
+                        "required": [
+                          "status"
+                        ],
+                        "properties": {
+                          "status": {
+                            "type": "string"
+                          }
+                        },
+                        "additionalProperties": true
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "summary": "Readiness probe",
+        "tags": [
+          "Health"
+        ]
+      }
+    },
+    "/api/v1/auth/register": {
+      "post": {
+        "description": "Creates a USER account on the FREE plan, sends a verification email and signs the user in.",
+        "operationId": "Auth_register",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RegisterDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation failed or malformed request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Resource conflicts with existing state",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limit or plan quota exceeded",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Register a new account",
+        "tags": [
+          "Auth"
+        ]
+      }
+    },
+    "/api/v1/auth/login": {
+      "post": {
+        "operationId": "Auth_login",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LoginDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation failed or malformed request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing, invalid or expired credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Authenticated but not allowed to perform this action",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limit or plan quota exceeded",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Log in with email and password",
+        "tags": [
+          "Auth"
+        ]
+      }
+    },
+    "/api/v1/auth/refresh": {
+      "post": {
+        "description": "Exchanges a refresh token for a new access/refresh token pair. The presented refresh token becomes invalid; re-using it revokes the session.",
+        "operationId": "Auth_refresh",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RefreshTokenDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation failed or malformed request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing, invalid or expired credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Authenticated but not allowed to perform this action",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Rotate tokens",
+        "tags": [
+          "Auth"
+        ]
+      }
+    },
+    "/api/v1/auth/logout": {
+      "post": {
+        "description": "Revokes the session: its access and refresh tokens stop working immediately.",
+        "operationId": "Auth_logout",
+        "parameters": [],
+        "responses": {
+          "204": {
+            "description": "Logged out"
+          },
+          "401": {
+            "description": "Missing, invalid or expired credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "access-token": []
+          }
+        ],
+        "summary": "Log out of the current session",
+        "tags": [
+          "Auth"
+        ]
+      }
+    },
+    "/api/v1/auth/logout-all": {
+      "post": {
+        "operationId": "Auth_logoutAll",
+        "parameters": [],
+        "responses": {
+          "204": {
+            "description": "All sessions revoked"
+          },
+          "401": {
+            "description": "Missing, invalid or expired credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "access-token": []
+          }
+        ],
+        "summary": "Log out of all sessions on every device",
+        "tags": [
+          "Auth"
+        ]
+      }
+    },
+    "/api/v1/auth/verify-email": {
+      "post": {
+        "operationId": "Auth_verifyEmail",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/VerifyEmailDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MessageResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation failed or malformed request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Verify email address with the emailed token",
+        "tags": [
+          "Auth"
+        ]
+      },
+      "get": {
+        "description": "Target of the link embedded in the verification email.",
+        "operationId": "Auth_verifyEmailLink",
+        "parameters": [
+          {
+            "name": "token",
+            "required": true,
+            "in": "query",
+            "description": "Token received by email",
+            "schema": {
+              "maxLength": 256,
+              "example": "mZ4q2pUe0wV3...",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MessageResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation failed or malformed request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Verify email address (link variant)",
+        "tags": [
+          "Auth"
+        ]
+      }
+    },
+    "/api/v1/auth/resend-verification": {
+      "post": {
+        "operationId": "Auth_resendVerification",
+        "parameters": [],
+        "responses": {
+          "202": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MessageResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing, invalid or expired credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limit or plan quota exceeded",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "access-token": []
+          }
+        ],
+        "summary": "Resend the verification email to the current user",
+        "tags": [
+          "Auth"
+        ]
+      }
+    },
+    "/api/v1/auth/forgot-password": {
+      "post": {
+        "description": "Always returns 202 so the response does not reveal whether the email exists.",
+        "operationId": "Auth_forgotPassword",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ForgotPasswordDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "202": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MessageResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation failed or malformed request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limit or plan quota exceeded",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Request a password reset email",
+        "tags": [
+          "Auth"
+        ]
+      }
+    },
+    "/api/v1/auth/reset-password": {
+      "post": {
+        "description": "All existing sessions are revoked.",
+        "operationId": "Auth_resetPassword",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ResetPasswordDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MessageResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation failed or malformed request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limit or plan quota exceeded",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Reset password with the emailed token",
+        "tags": [
+          "Auth"
+        ]
+      }
+    },
+    "/api/v1/users/me": {
+      "get": {
+        "operationId": "Users_getProfile",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing, invalid or expired credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "access-token": []
+          }
+        ],
+        "summary": "Get the current user’s profile",
+        "tags": [
+          "Users"
+        ]
+      },
+      "patch": {
+        "operationId": "Users_updateProfile",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateProfileDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation failed or malformed request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing, invalid or expired credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "access-token": []
+          }
+        ],
+        "summary": "Update the current user’s profile",
+        "tags": [
+          "Users"
+        ]
+      },
+      "delete": {
+        "description": "Permanently deletes the account and all associated data (sessions, conversations, searches). Requires the current password.",
+        "operationId": "Users_deleteAccount",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DeleteAccountDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "204": {
+            "description": "Account deleted"
+          },
+          "400": {
+            "description": "Validation failed or malformed request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing, invalid or expired credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Authenticated but not allowed to perform this action",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "access-token": []
+          }
+        ],
+        "summary": "Delete account",
+        "tags": [
+          "Users"
+        ]
+      }
+    },
+    "/api/v1/users/me/password": {
+      "patch": {
+        "description": "Requires the current password. All other sessions are signed out.",
+        "operationId": "Users_changePassword",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ChangePasswordDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MessageResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation failed or malformed request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing, invalid or expired credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "access-token": []
+          }
+        ],
+        "summary": "Change password",
+        "tags": [
+          "Users"
+        ]
+      }
+    },
+    "/api/v1/auth/sessions": {
+      "get": {
+        "operationId": "Sessions_list",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/SessionResponseDto"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing, invalid or expired credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "access-token": []
+          }
+        ],
+        "summary": "List active sessions (logged-in devices) of the current user",
+        "tags": [
+          "Auth"
+        ]
+      }
+    },
+    "/api/v1/auth/sessions/{id}": {
+      "delete": {
+        "operationId": "Sessions_revoke",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Session revoked"
+          },
+          "400": {
+            "description": "Validation failed or malformed request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing, invalid or expired credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Resource not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "access-token": []
+          }
+        ],
+        "summary": "Revoke one of the current user’s sessions (remote logout)",
+        "tags": [
+          "Auth"
+        ]
+      }
+    },
+    "/api/v1/subscriptions/plans": {
+      "get": {
+        "operationId": "Subscriptions_listPlans",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/PlanResponseDto"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "summary": "List available plans (Free & Premium)",
+        "tags": [
+          "Subscriptions"
+        ]
+      }
+    },
+    "/api/v1/subscriptions/me": {
+      "get": {
+        "description": "Current plan, subscription state and today’s usage.",
+        "operationId": "Subscriptions_status",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SubscriptionStatusResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing, invalid or expired credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "access-token": []
+          }
+        ],
+        "summary": "Subscription status",
+        "tags": [
+          "Subscriptions"
+        ]
+      },
+      "patch": {
+        "description": "Switches the user to the given plan. Paid plans start a 30-day period; the previous subscription is kept as CANCELED in the history.",
+        "operationId": "Subscriptions_changePlan",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ChangePlanDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SubscriptionResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation failed or malformed request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing, invalid or expired credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Resource not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Resource conflicts with existing state",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "access-token": []
+          }
+        ],
+        "summary": "Upgrade or downgrade the subscription",
+        "tags": [
+          "Subscriptions"
+        ]
+      }
+    },
+    "/api/v1/subscriptions/me/usage": {
+      "get": {
+        "description": "AI request quota for the current UTC day.",
+        "operationId": "Subscriptions_usage",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UsageResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing, invalid or expired credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "access-token": []
+          }
+        ],
+        "summary": "Remaining requests",
+        "tags": [
+          "Subscriptions"
+        ]
+      }
+    },
+    "/api/v1/subscriptions/me/history": {
+      "get": {
+        "operationId": "Subscriptions_history",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/SubscriptionResponseDto"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing, invalid or expired credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "access-token": []
+          }
+        ],
+        "summary": "Subscription history (most recent first)",
+        "tags": [
+          "Subscriptions"
+        ]
+      }
+    },
+    "/api/v1/providers": {
+      "get": {
+        "description": "Used by the extension to populate the provider/model picker.",
+        "operationId": "Providers_list",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/PublicProviderDto"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing, invalid or expired credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "access-token": []
+          }
+        ],
+        "summary": "List enabled AI providers and their models",
+        "tags": [
+          "Providers"
+        ]
+      }
+    },
+    "/api/v1/admin/providers": {
+      "get": {
+        "operationId": "AdminProviders_list",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ProviderResponseDto"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing, invalid or expired credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Authenticated but not allowed to perform this action",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "access-token": []
+          }
+        ],
+        "summary": "List all AI providers",
+        "tags": [
+          "Admin: AI Providers"
+        ]
+      },
+      "post": {
+        "description": "Registers an OpenAI, Anthropic (Claude) or Google Gemini provider. The API key is encrypted at rest and never returned.",
+        "operationId": "AdminProviders_create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateProviderDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProviderResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation failed or malformed request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing, invalid or expired credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Authenticated but not allowed to perform this action",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Resource conflicts with existing state",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "access-token": []
+          }
+        ],
+        "summary": "Add an AI provider",
+        "tags": [
+          "Admin: AI Providers"
+        ]
+      }
+    },
+    "/api/v1/admin/providers/health-check": {
+      "post": {
+        "description": "Performs a live authenticated call to every enabled provider and stores the result.",
+        "operationId": "AdminProviders_checkAll",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ProviderResponseDto"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing, invalid or expired credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Authenticated but not allowed to perform this action",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "access-token": []
+          }
+        ],
+        "summary": "Health check all enabled providers",
+        "tags": [
+          "Admin: AI Providers"
+        ]
+      }
+    },
+    "/api/v1/admin/providers/{id}": {
+      "get": {
+        "operationId": "AdminProviders_findOne",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProviderResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation failed or malformed request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing, invalid or expired credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Authenticated but not allowed to perform this action",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Resource not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "access-token": []
+          }
+        ],
+        "summary": "Get an AI provider",
+        "tags": [
+          "Admin: AI Providers"
+        ]
+      },
+      "patch": {
+        "description": "Send `apiKey` to rotate the key. The provider type cannot be changed.",
+        "operationId": "AdminProviders_update",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateProviderDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProviderResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation failed or malformed request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing, invalid or expired credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Authenticated but not allowed to perform this action",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Resource not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Resource conflicts with existing state",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "access-token": []
+          }
+        ],
+        "summary": "Edit an AI provider",
+        "tags": [
+          "Admin: AI Providers"
+        ]
+      },
+      "delete": {
+        "description": "Existing conversations keep their history; their provider reference is cleared.",
+        "operationId": "AdminProviders_remove",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Provider deleted"
+          },
+          "400": {
+            "description": "Validation failed or malformed request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing, invalid or expired credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Authenticated but not allowed to perform this action",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Resource not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "access-token": []
+          }
+        ],
+        "summary": "Delete an AI provider",
+        "tags": [
+          "Admin: AI Providers"
+        ]
+      }
+    },
+    "/api/v1/admin/providers/{id}/enable": {
+      "post": {
+        "operationId": "AdminProviders_enable",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProviderResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation failed or malformed request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing, invalid or expired credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Authenticated but not allowed to perform this action",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Resource not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "access-token": []
+          }
+        ],
+        "summary": "Enable an AI provider",
+        "tags": [
+          "Admin: AI Providers"
+        ]
+      }
+    },
+    "/api/v1/admin/providers/{id}/disable": {
+      "post": {
+        "description": "Disabling the default provider also clears the default selection.",
+        "operationId": "AdminProviders_disable",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProviderResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation failed or malformed request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing, invalid or expired credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Authenticated but not allowed to perform this action",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Resource not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "access-token": []
+          }
+        ],
+        "summary": "Disable an AI provider",
+        "tags": [
+          "Admin: AI Providers"
+        ]
+      }
+    },
+    "/api/v1/admin/providers/{id}/default": {
+      "post": {
+        "operationId": "AdminProviders_makeDefault",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProviderResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation failed or malformed request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing, invalid or expired credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Authenticated but not allowed to perform this action",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Resource not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Resource conflicts with existing state",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "access-token": []
+          }
+        ],
+        "summary": "Make this the default provider",
+        "tags": [
+          "Admin: AI Providers"
+        ]
+      }
+    },
+    "/api/v1/admin/providers/{id}/health-check": {
+      "post": {
+        "description": "Performs a live authenticated call to the vendor and stores status and latency.",
+        "operationId": "AdminProviders_checkOne",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProviderResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation failed or malformed request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing, invalid or expired credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Authenticated but not allowed to perform this action",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Resource not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "access-token": []
+          }
+        ],
+        "summary": "Health check one provider",
+        "tags": [
+          "Admin: AI Providers"
+        ]
+      }
+    },
+    "/api/v1/chat/messages": {
+      "post": {
+        "description": "Omit `conversationId` to start a new conversation. Consumes one request from the daily plan quota (refunded if the provider fails).",
+        "operationId": "Chat_send",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SendMessageDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SendMessageResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation failed or malformed request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing, invalid or expired credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Resource not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Resource conflicts with existing state",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limit or plan quota exceeded",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "502": {
+            "description": "Upstream AI / search provider failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Dependency unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "access-token": []
+          }
+        ],
+        "summary": "Send a prompt and receive the AI response",
+        "tags": [
+          "Chat"
+        ]
+      }
+    },
+    "/api/v1/chat/messages/stream": {
+      "post": {
+        "description": "\nSame as `POST /chat/messages` but the answer is streamed as **Server-Sent Events**.\n\nValidation, provider and quota errors are returned as regular JSON errors *before* the stream starts.\nOnce streaming, events are:\n\n| event   | data |\n|---------|------|\n| `start` | `{ conversationId, providerId, model }` |\n| `delta` | `{ text }` — append to the answer |\n| `done`  | `SendMessageResponseDto` — the persisted messages |\n| `error` | `{ message }` — upstream provider failure (quota is refunded) |\n\nClosing the connection aborts the upstream request.\n",
+        "operationId": "Chat_stream",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SendMessageDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Server-Sent Events stream",
+            "content": {
+              "text/event-stream": {
+                "schema": {
+                  "type": "string",
+                  "example": "event: start\ndata: {\"conversationId\":\"…\",\"providerId\":\"…\",\"model\":\"gpt-5-mini\"}\n\nevent: delta\ndata: {\"text\":\"Hello\"}\n\nevent: done\ndata: {\"conversation\":{…},\"userMessage\":{…},\"assistantMessage\":{…}}\n\n"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation failed or malformed request",
+            "content": {
+              "text/event-stream": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing, invalid or expired credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Resource not found",
+            "content": {
+              "text/event-stream": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Resource conflicts with existing state",
+            "content": {
+              "text/event-stream": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limit or plan quota exceeded",
+            "content": {
+              "text/event-stream": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Dependency unavailable",
+            "content": {
+              "text/event-stream": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "access-token": []
+          }
+        ],
+        "summary": "Send a prompt and stream the AI response (SSE)",
+        "tags": [
+          "Chat"
+        ]
+      }
+    },
+    "/api/v1/chat/conversations": {
+      "get": {
+        "operationId": "Chat_list",
+        "parameters": [
+          {
+            "name": "q",
+            "required": false,
+            "in": "query",
+            "description": "Case-insensitive search in conversation titles.",
+            "schema": {
+              "maxLength": 200,
+              "type": "string"
+            }
+          },
+          {
+            "name": "page",
+            "required": true,
+            "in": "query",
+            "description": "1-based page number.",
+            "schema": {
+              "minimum": 1,
+              "default": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "limit",
+            "required": true,
+            "in": "query",
+            "description": "Page size (max 100).",
+            "schema": {
+              "minimum": 1,
+              "maximum": 100,
+              "default": 20,
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "data",
+                    "meta"
+                  ],
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/ConversationDto"
+                      }
+                    },
+                    "meta": {
+                      "$ref": "#/components/schemas/PaginationMetaDto"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing, invalid or expired credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "access-token": []
+          }
+        ],
+        "summary": "Conversation history (most recently active first)",
+        "tags": [
+          "Chat"
+        ]
+      },
+      "post": {
+        "description": "Optional: lets clients pin a provider/model or a system prompt up front.",
+        "operationId": "Chat_create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateConversationDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConversationDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation failed or malformed request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing, invalid or expired credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Resource not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Resource conflicts with existing state",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "access-token": []
+          }
+        ],
+        "summary": "Create an empty conversation",
+        "tags": [
+          "Chat"
+        ]
+      }
+    },
+    "/api/v1/chat/conversations/{id}": {
+      "get": {
+        "operationId": "Chat_findOne",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConversationDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation failed or malformed request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing, invalid or expired credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Resource not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "access-token": []
+          }
+        ],
+        "summary": "Get a conversation",
+        "tags": [
+          "Chat"
+        ]
+      },
+      "patch": {
+        "operationId": "Chat_update",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateConversationDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConversationDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation failed or malformed request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing, invalid or expired credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Resource not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Resource conflicts with existing state",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "access-token": []
+          }
+        ],
+        "summary": "Rename a conversation or change its provider/model/system prompt",
+        "tags": [
+          "Chat"
+        ]
+      },
+      "delete": {
+        "operationId": "Chat_remove",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Conversation deleted"
+          },
+          "400": {
+            "description": "Validation failed or malformed request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing, invalid or expired credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Resource not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "access-token": []
+          }
+        ],
+        "summary": "Delete a conversation and its messages",
+        "tags": [
+          "Chat"
+        ]
+      }
+    },
+    "/api/v1/chat/conversations/{id}/messages": {
+      "get": {
+        "operationId": "Chat_messages",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "page",
+            "required": true,
+            "in": "query",
+            "description": "1-based page number.",
+            "schema": {
+              "minimum": 1,
+              "default": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "limit",
+            "required": true,
+            "in": "query",
+            "description": "Page size (max 100).",
+            "schema": {
+              "minimum": 1,
+              "maximum": 100,
+              "default": 20,
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "data",
+                    "meta"
+                  ],
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/ChatMessageDto"
+                      }
+                    },
+                    "meta": {
+                      "$ref": "#/components/schemas/PaginationMetaDto"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation failed or malformed request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing, invalid or expired credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Resource not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "access-token": []
+          }
+        ],
+        "summary": "Messages of a conversation (chronological)",
+        "tags": [
+          "Chat"
+        ]
+      }
+    },
+    "/api/v1/search": {
+      "post": {
+        "description": "Results are cached per normalized query (see SEARCH_CACHE_TTL_SECONDS). With `summarize: true` an AI provider writes a grounded answer with [n] citations; this consumes one AI request from the plan quota. If only the summary fails, results are still returned with `summaryError` set.",
+        "operationId": "Search_perform",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SearchQueryDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PerformSearchResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation failed or malformed request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing, invalid or expired credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Resource not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Resource conflicts with existing state",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limit or plan quota exceeded",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "502": {
+            "description": "Upstream AI / search provider failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Dependency unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "access-token": []
+          }
+        ],
+        "summary": "Search the web (optionally with an AI summary)",
+        "tags": [
+          "Search"
+        ]
+      }
+    },
+    "/api/v1/search/history": {
+      "get": {
+        "operationId": "Search_history",
+        "parameters": [
+          {
+            "name": "page",
+            "required": true,
+            "in": "query",
+            "description": "1-based page number.",
+            "schema": {
+              "minimum": 1,
+              "default": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "limit",
+            "required": true,
+            "in": "query",
+            "description": "Page size (max 100).",
+            "schema": {
+              "minimum": 1,
+              "maximum": 100,
+              "default": 20,
+              "type": "number"
+            }
+          },
+          {
+            "name": "q",
+            "required": false,
+            "in": "query",
+            "description": "Filter history by query text (case-insensitive).",
+            "schema": {
+              "maxLength": 200,
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "data",
+                    "meta"
+                  ],
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/SearchResponseDto"
+                      }
+                    },
+                    "meta": {
+                      "$ref": "#/components/schemas/PaginationMetaDto"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing, invalid or expired credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "access-token": []
+          }
+        ],
+        "summary": "Search history (newest first)",
+        "tags": [
+          "Search"
+        ]
+      },
+      "delete": {
+        "operationId": "Search_clearHistory",
+        "parameters": [],
+        "responses": {
+          "204": {
+            "description": "History cleared"
+          },
+          "401": {
+            "description": "Missing, invalid or expired credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "access-token": []
+          }
+        ],
+        "summary": "Clear the entire search history",
+        "tags": [
+          "Search"
+        ]
+      }
+    },
+    "/api/v1/search/history/{id}": {
+      "get": {
+        "operationId": "Search_findOne",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SearchResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation failed or malformed request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing, invalid or expired credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Resource not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "access-token": []
+          }
+        ],
+        "summary": "Get a past search with its results",
+        "tags": [
+          "Search"
+        ]
+      },
+      "delete": {
+        "operationId": "Search_remove",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Search deleted"
+          },
+          "400": {
+            "description": "Validation failed or malformed request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing, invalid or expired credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Resource not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "access-token": []
+          }
+        ],
+        "summary": "Delete one search from history",
+        "tags": [
+          "Search"
+        ]
+      }
+    },
+    "/api/v1/search/recent": {
+      "get": {
+        "operationId": "Search_recent",
+        "parameters": [
+          {
+            "name": "limit",
+            "required": true,
+            "in": "query",
+            "description": "Number of distinct recent queries (max 50).",
+            "schema": {
+              "minimum": 1,
+              "maximum": 50,
+              "default": 10,
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/RecentSearchDto"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing, invalid or expired credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "access-token": []
+          }
+        ],
+        "summary": "Recent distinct searches of the current user",
+        "tags": [
+          "Search"
+        ]
+      }
+    },
+    "/api/v1/search/suggestions": {
+      "get": {
+        "description": "Combines the user’s own matching history (most frequent first) with engine autocomplete. Other users’ queries are never suggested.",
+        "operationId": "Search_suggestions",
+        "parameters": [
+          {
+            "name": "q",
+            "required": true,
+            "in": "query",
+            "description": "Prefix typed so far.",
+            "schema": {
+              "minLength": 1,
+              "maxLength": 200,
+              "type": "string"
+            }
+          },
+          {
+            "name": "limit",
+            "required": true,
+            "in": "query",
+            "description": "Max suggestions (max 20).",
+            "schema": {
+              "minimum": 1,
+              "maximum": 20,
+              "default": 8,
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuggestionsResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation failed or malformed request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing, invalid or expired credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "access-token": []
+          }
+        ],
+        "summary": "Search suggestions for a prefix",
+        "tags": [
+          "Search"
+        ]
+      }
+    },
+    "/api/v1/admin/dashboard": {
+      "get": {
+        "operationId": "AdminDashboard_dashboard",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DashboardStatsDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing, invalid or expired credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Authenticated but not allowed to perform this action",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "access-token": []
+          }
+        ],
+        "summary": "Dashboard statistics (users, plans, activity, providers, API)",
+        "tags": [
+          "Admin: Dashboard"
+        ]
+      }
+    },
+    "/api/v1/admin/analytics/usage": {
+      "get": {
+        "description": "Zero-filled UTC days. Defaults to the last 30 days; max range 366 days.",
+        "operationId": "AdminAnalytics_usage",
+        "parameters": [
+          {
+            "name": "from",
+            "required": false,
+            "in": "query",
+            "description": "Start of the range (ISO 8601). Defaults to 30 days ago.",
+            "schema": {
+              "format": "date-time",
+              "type": "string"
+            }
+          },
+          {
+            "name": "to",
+            "required": false,
+            "in": "query",
+            "description": "End of the range (ISO 8601). Defaults to now.",
+            "schema": {
+              "format": "date-time",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/UsagePointDto"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation failed or malformed request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing, invalid or expired credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Authenticated but not allowed to perform this action",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "access-token": []
+          }
+        ],
+        "summary": "Daily API usage time series",
+        "tags": [
+          "Admin: Analytics"
+        ]
+      }
+    },
+    "/api/v1/admin/analytics/providers": {
+      "get": {
+        "operationId": "AdminAnalytics_providers",
+        "parameters": [
+          {
+            "name": "from",
+            "required": false,
+            "in": "query",
+            "description": "Start of the range (ISO 8601). Defaults to 30 days ago.",
+            "schema": {
+              "format": "date-time",
+              "type": "string"
+            }
+          },
+          {
+            "name": "to",
+            "required": false,
+            "in": "query",
+            "description": "End of the range (ISO 8601). Defaults to now.",
+            "schema": {
+              "format": "date-time",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ProviderUsageDto"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation failed or malformed request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing, invalid or expired credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Authenticated but not allowed to perform this action",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "access-token": []
+          }
+        ],
+        "summary": "AI usage per provider (messages, search summaries, tokens, latency)",
+        "tags": [
+          "Admin: Analytics"
+        ]
+      }
+    },
+    "/api/v1/admin/analytics/endpoints": {
+      "get": {
+        "operationId": "AdminAnalytics_endpoints",
+        "parameters": [
+          {
+            "name": "from",
+            "required": false,
+            "in": "query",
+            "description": "Start of the range (ISO 8601). Defaults to 30 days ago.",
+            "schema": {
+              "format": "date-time",
+              "type": "string"
+            }
+          },
+          {
+            "name": "to",
+            "required": false,
+            "in": "query",
+            "description": "End of the range (ISO 8601). Defaults to now.",
+            "schema": {
+              "format": "date-time",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/EndpointUsageDto"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation failed or malformed request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing, invalid or expired credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Authenticated but not allowed to perform this action",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "access-token": []
+          }
+        ],
+        "summary": "Top endpoints with error counts and average / p95 latency",
+        "tags": [
+          "Admin: Analytics"
+        ]
+      }
+    },
+    "/api/v1/admin/logs": {
+      "get": {
+        "description": "Newest first. Filter by user, method, status, path and time range.",
+        "operationId": "AdminLogs_list",
+        "parameters": [
+          {
+            "name": "page",
+            "required": true,
+            "in": "query",
+            "description": "1-based page number.",
+            "schema": {
+              "minimum": 1,
+              "default": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "limit",
+            "required": true,
+            "in": "query",
+            "description": "Page size (max 100).",
+            "schema": {
+              "minimum": 1,
+              "maximum": 100,
+              "default": 20,
+              "type": "number"
+            }
+          },
+          {
+            "name": "userId",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "name": "method",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "GET",
+                "POST",
+                "PUT",
+                "PATCH",
+                "DELETE",
+                "OPTIONS",
+                "HEAD"
+              ]
+            }
+          },
+          {
+            "name": "statusCode",
+            "required": false,
+            "in": "query",
+            "description": "Exact status code.",
+            "schema": {
+              "minimum": 100,
+              "maximum": 599,
+              "type": "number"
+            }
+          },
+          {
+            "name": "minStatusCode",
+            "required": false,
+            "in": "query",
+            "description": "Only responses with status >= this value (e.g. 400 for all errors).",
+            "schema": {
+              "minimum": 100,
+              "maximum": 599,
+              "type": "number"
+            }
+          },
+          {
+            "name": "path",
+            "required": false,
+            "in": "query",
+            "description": "Substring of the request path.",
+            "schema": {
+              "maxLength": 200,
+              "type": "string"
+            }
+          },
+          {
+            "name": "from",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "format": "date-time",
+              "type": "string"
+            }
+          },
+          {
+            "name": "to",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "format": "date-time",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "data",
+                    "meta"
+                  ],
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/RequestLogDto"
+                      }
+                    },
+                    "meta": {
+                      "$ref": "#/components/schemas/PaginationMetaDto"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation failed or malformed request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing, invalid or expired credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Authenticated but not allowed to perform this action",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "access-token": []
+          }
+        ],
+        "summary": "API request logs",
+        "tags": [
+          "Admin: Logs"
+        ]
+      }
+    },
+    "/api/v1/admin/users": {
+      "get": {
+        "operationId": "AdminUsers_list",
+        "parameters": [
+          {
+            "name": "page",
+            "required": true,
+            "in": "query",
+            "description": "1-based page number.",
+            "schema": {
+              "minimum": 1,
+              "default": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "limit",
+            "required": true,
+            "in": "query",
+            "description": "Page size (max 100).",
+            "schema": {
+              "minimum": 1,
+              "maximum": 100,
+              "default": 20,
+              "type": "number"
+            }
+          },
+          {
+            "name": "q",
+            "required": false,
+            "in": "query",
+            "description": "Search in email and full name (case-insensitive).",
+            "schema": {
+              "maxLength": 100,
+              "type": "string"
+            }
+          },
+          {
+            "name": "role",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "ADMIN",
+                "USER"
+              ]
+            }
+          },
+          {
+            "name": "isActive",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "plan",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "FREE",
+                "PREMIUM"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "data",
+                    "meta"
+                  ],
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/AdminUserDto"
+                      }
+                    },
+                    "meta": {
+                      "$ref": "#/components/schemas/PaginationMetaDto"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation failed or malformed request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing, invalid or expired credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Authenticated but not allowed to perform this action",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "access-token": []
+          }
+        ],
+        "summary": "List users (search by email/name, filter by role, status, plan)",
+        "tags": [
+          "Admin: Users"
+        ]
+      }
+    },
+    "/api/v1/admin/users/{id}": {
+      "get": {
+        "operationId": "AdminUsers_detail",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdminUserDetailDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation failed or malformed request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing, invalid or expired credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Authenticated but not allowed to perform this action",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Resource not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "access-token": []
+          }
+        ],
+        "summary": "User details with subscription, usage and activity counts",
+        "tags": [
+          "Admin: Users"
+        ]
+      },
+      "patch": {
+        "description": "Deactivation revokes all sessions immediately. Admins cannot modify themselves, and the last active admin cannot be demoted or deactivated.",
+        "operationId": "AdminUsers_update",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AdminUpdateUserDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation failed or malformed request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing, invalid or expired credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Authenticated but not allowed to perform this action",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Resource not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "access-token": []
+          }
+        ],
+        "summary": "Change a user’s role or activate/deactivate the account",
+        "tags": [
+          "Admin: Users"
+        ]
+      },
+      "delete": {
+        "operationId": "AdminUsers_remove",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "User deleted"
+          },
+          "400": {
+            "description": "Validation failed or malformed request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing, invalid or expired credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Authenticated but not allowed to perform this action",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Resource not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "access-token": []
+          }
+        ],
+        "summary": "Permanently delete a user and all of their data",
+        "tags": [
+          "Admin: Users"
+        ]
+      }
+    },
+    "/api/v1/admin/users/{id}/revoke-sessions": {
+      "post": {
+        "operationId": "AdminUsers_revokeSessions",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MessageResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation failed or malformed request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing, invalid or expired credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Authenticated but not allowed to perform this action",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Resource not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "access-token": []
+          }
+        ],
+        "summary": "Sign a user out of every device",
+        "tags": [
+          "Admin: Users"
+        ]
+      }
+    },
+    "/api/v1/admin/subscriptions": {
+      "get": {
+        "operationId": "AdminSubscriptions_list",
+        "parameters": [
+          {
+            "name": "page",
+            "required": true,
+            "in": "query",
+            "description": "1-based page number.",
+            "schema": {
+              "minimum": 1,
+              "default": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "limit",
+            "required": true,
+            "in": "query",
+            "description": "Page size (max 100).",
+            "schema": {
+              "minimum": 1,
+              "maximum": 100,
+              "default": 20,
+              "type": "number"
+            }
+          },
+          {
+            "name": "status",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "ACTIVE",
+                "CANCELED",
+                "EXPIRED"
+              ]
+            }
+          },
+          {
+            "name": "plan",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "FREE",
+                "PREMIUM"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "data",
+                    "meta"
+                  ],
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/AdminSubscriptionDto"
+                      }
+                    },
+                    "meta": {
+                      "$ref": "#/components/schemas/PaginationMetaDto"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation failed or malformed request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing, invalid or expired credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Authenticated but not allowed to perform this action",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "access-token": []
+          }
+        ],
+        "summary": "List subscriptions (filter by status and plan)",
+        "tags": [
+          "Admin: Subscriptions"
+        ]
+      }
+    },
+    "/api/v1/admin/subscriptions/plans": {
+      "get": {
+        "operationId": "AdminSubscriptions_plans",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/AdminPlanDto"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing, invalid or expired credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Authenticated but not allowed to perform this action",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "access-token": []
+          }
+        ],
+        "summary": "List all plans (including inactive) with subscriber counts",
+        "tags": [
+          "Admin: Subscriptions"
+        ]
+      }
+    },
+    "/api/v1/admin/subscriptions/plans/{code}": {
+      "patch": {
+        "operationId": "AdminSubscriptions_updatePlan",
+        "parameters": [
+          {
+            "name": "code",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "enum": [
+                "FREE",
+                "PREMIUM"
+              ],
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdatePlanDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PlanResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation failed or malformed request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing, invalid or expired credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Authenticated but not allowed to perform this action",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Resource not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "access-token": []
+          }
+        ],
+        "summary": "Update a plan (price, daily request limit, features, availability)",
+        "tags": [
+          "Admin: Subscriptions"
+        ]
+      }
+    },
+    "/api/v1/admin/subscriptions/users/{userId}": {
+      "put": {
+        "description": "The previous subscription is kept as CANCELED history.",
+        "operationId": "AdminSubscriptions_assignPlan",
+        "parameters": [
+          {
+            "name": "userId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AssignPlanDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SubscriptionResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation failed or malformed request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing, invalid or expired credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Authenticated but not allowed to perform this action",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Resource not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Resource conflicts with existing state",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "access-token": []
+          }
+        ],
+        "summary": "Upgrade or downgrade a user’s subscription",
+        "tags": [
+          "Admin: Subscriptions"
+        ]
+      }
+    },
+    "/api/v1/admin/system/health": {
+      "get": {
+        "description": "Database status/latency/size, process metrics, AI provider health and search cache. Unlike the public readiness probe, this is for operators.",
+        "operationId": "AdminSystem_health",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SystemHealthDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing, invalid or expired credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Authenticated but not allowed to perform this action",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "access-token": []
+          }
+        ],
+        "summary": "Detailed system health",
+        "tags": [
+          "Admin: System"
+        ]
+      }
+    },
+    "/api/v1/admin/system/maintenance": {
+      "post": {
+        "description": "Purges expired sessions and tokens, expired search cache entries and request logs past API_LOG_RETENTION_DAYS. Also runs daily at 03:00.",
+        "operationId": "AdminSystem_maintenance",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MaintenanceResultDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing, invalid or expired credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Authenticated but not allowed to perform this action",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "access-token": []
+          }
+        ],
+        "summary": "Run maintenance now",
+        "tags": [
+          "Admin: System"
+        ]
+      }
+    }
+  },
+  "info": {
+    "title": "EchoGPT API",
+    "description": "\nREST API powering the **EchoGPT** multi-AI chat Chrome extension.\n\n### Authentication\n1. `POST /api/v1/auth/register` or `POST /api/v1/auth/login` returns an **access token** (short lived JWT) and a **refresh token** (opaque, long lived, rotated on every use).\n2. Send the access token as `Authorization: Bearer <token>`. Click **Authorize** above to use it here.\n3. When the access token expires call `POST /api/v1/auth/refresh`. Re-using an already rotated refresh token revokes the whole session.\n\n### Errors\nEvery error uses the same envelope: `{ statusCode, error, message, details?, path, timestamp, requestId }`.\nThe `x-request-id` response header echoes the correlation id for support/debugging.\n\n### Quotas\nAI endpoints (chat, AI-assisted search) consume the caller's daily plan quota. Exceeding it returns **429**.\n",
+    "version": "1.0.0",
+    "contact": {}
+  },
+  "tags": [
+    {
+      "name": "Health",
+      "description": "Liveness / readiness probes"
+    },
+    {
+      "name": "Auth",
+      "description": "Registration, login, token refresh, email verification"
+    },
+    {
+      "name": "Users",
+      "description": "Current user profile & account management"
+    },
+    {
+      "name": "Subscriptions",
+      "description": "Plans, subscription status, usage limits"
+    },
+    {
+      "name": "Providers",
+      "description": "Enabled AI providers available to users"
+    },
+    {
+      "name": "Chat",
+      "description": "Conversations with AI providers (incl. streaming)"
+    },
+    {
+      "name": "Search",
+      "description": "AI-assisted web search"
+    },
+    {
+      "name": "Admin: Dashboard",
+      "description": "Headline statistics (ADMIN)"
+    },
+    {
+      "name": "Admin: Users",
+      "description": "User management: roles, activation, sessions (ADMIN)"
+    },
+    {
+      "name": "Admin: Subscriptions",
+      "description": "Subscriptions and plan configuration (ADMIN)"
+    },
+    {
+      "name": "Admin: AI Providers",
+      "description": "Manage AI providers, API keys, defaults and health (ADMIN)"
+    },
+    {
+      "name": "Admin: Analytics",
+      "description": "API usage analytics (ADMIN)"
+    },
+    {
+      "name": "Admin: Logs",
+      "description": "API request logs (ADMIN)"
+    },
+    {
+      "name": "Admin: System",
+      "description": "System health and maintenance (ADMIN)"
+    }
+  ],
+  "servers": [],
+  "components": {
+    "securitySchemes": {
+      "access-token": {
+        "scheme": "bearer",
+        "bearerFormat": "JWT",
+        "type": "http",
+        "description": "JWT access token"
+      }
+    },
+    "schemas": {
+      "RegisterDto": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string",
+            "example": "jane.doe@example.com",
+            "maxLength": 255
+          },
+          "password": {
+            "type": "string",
+            "description": "Account password. 8-128 characters, at least one letter and one number.",
+            "example": "Str0ngPass!",
+            "minLength": 8,
+            "maxLength": 128
+          },
+          "fullName": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 100,
+            "example": "Jane Doe"
+          }
+        },
+        "required": [
+          "email",
+          "password"
+        ]
+      },
+      "UserResponseDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "example": "3f6c1a2e-8a41-4a57-9d0f-1b8c0f2e6a11"
+          },
+          "email": {
+            "type": "string",
+            "example": "jane.doe@example.com"
+          },
+          "fullName": {
+            "type": "string",
+            "nullable": true,
+            "example": "Jane Doe"
+          },
+          "avatarUrl": {
+            "type": "string",
+            "nullable": true,
+            "example": "https://cdn.example.com/avatar.png"
+          },
+          "role": {
+            "enum": [
+              "ADMIN",
+              "USER"
+            ],
+            "type": "string",
+            "example": "USER"
+          },
+          "isActive": {
+            "type": "boolean",
+            "example": true
+          },
+          "emailVerified": {
+            "type": "boolean",
+            "example": false
+          },
+          "lastLoginAt": {
+            "format": "date-time",
+            "type": "string",
+            "nullable": true
+          },
+          "createdAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "updatedAt": {
+            "format": "date-time",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "email",
+          "fullName",
+          "avatarUrl",
+          "role",
+          "isActive",
+          "emailVerified",
+          "lastLoginAt",
+          "createdAt",
+          "updatedAt"
+        ]
+      },
+      "AuthResponseDto": {
+        "type": "object",
+        "properties": {
+          "accessToken": {
+            "type": "string",
+            "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+          },
+          "refreshToken": {
+            "type": "string",
+            "description": "Opaque, single-use refresh token. Store securely (e.g. chrome.storage.session).",
+            "example": "9b1f7c7e-2f55-4f7a-9d59-6c2d3e1a8b90.q5Zb3n..."
+          },
+          "tokenType": {
+            "type": "string",
+            "example": "Bearer"
+          },
+          "expiresIn": {
+            "type": "number",
+            "description": "Access token lifetime in seconds",
+            "example": 900
+          },
+          "user": {
+            "$ref": "#/components/schemas/UserResponseDto"
+          }
+        },
+        "required": [
+          "accessToken",
+          "refreshToken",
+          "tokenType",
+          "expiresIn",
+          "user"
+        ]
+      },
+      "ErrorResponseDto": {
+        "type": "object",
+        "properties": {
+          "statusCode": {
+            "type": "number",
+            "example": 400
+          },
+          "error": {
+            "type": "string",
+            "example": "Bad Request"
+          },
+          "message": {
+            "type": "string",
+            "example": "Validation failed"
+          },
+          "details": {
+            "example": [
+              "email must be an email",
+              "password must be longer than or equal to 8 characters"
+            ],
+            "description": "Field level details, present for validation errors.",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "path": {
+            "type": "string",
+            "example": "/api/v1/auth/register"
+          },
+          "timestamp": {
+            "type": "string",
+            "example": "2026-09-29T10:15:30.000Z"
+          },
+          "requestId": {
+            "type": "string",
+            "example": "6f1c2c1e-6c47-4f0e-9a36-0c5f0f4b1a2d"
+          }
+        },
+        "required": [
+          "statusCode",
+          "error",
+          "message",
+          "path",
+          "timestamp",
+          "requestId"
+        ]
+      },
+      "LoginDto": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string",
+            "example": "jane.doe@example.com",
+            "maxLength": 255
+          },
+          "password": {
+            "type": "string",
+            "maxLength": 128,
+            "example": "Str0ngPass!"
+          }
+        },
+        "required": [
+          "email",
+          "password"
+        ]
+      },
+      "RefreshTokenDto": {
+        "type": "object",
+        "properties": {
+          "refreshToken": {
+            "type": "string",
+            "maxLength": 512,
+            "description": "Refresh token returned by login/register/refresh",
+            "example": "9b1f7c7e-2f55-4f7a-9d59-6c2d3e1a8b90.q5Zb3n..."
+          }
+        },
+        "required": [
+          "refreshToken"
+        ]
+      },
+      "VerifyEmailDto": {
+        "type": "object",
+        "properties": {
+          "token": {
+            "type": "string",
+            "maxLength": 256,
+            "description": "Token received by email",
+            "example": "mZ4q2pUe0wV3..."
+          }
+        },
+        "required": [
+          "token"
+        ]
+      },
+      "MessageResponseDto": {
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string",
+            "example": "Operation completed successfully"
+          }
+        },
+        "required": [
+          "message"
+        ]
+      },
+      "ForgotPasswordDto": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string",
+            "example": "jane.doe@example.com",
+            "maxLength": 255
+          }
+        },
+        "required": [
+          "email"
+        ]
+      },
+      "ResetPasswordDto": {
+        "type": "object",
+        "properties": {
+          "token": {
+            "type": "string",
+            "maxLength": 256,
+            "description": "Token received by email",
+            "example": "mZ4q2pUe0wV3..."
+          },
+          "newPassword": {
+            "type": "string",
+            "description": "New password. 8-128 characters, at least one letter and one number.",
+            "example": "N3wStr0ngPass!",
+            "minLength": 8,
+            "maxLength": 128
+          }
+        },
+        "required": [
+          "token",
+          "newPassword"
+        ]
+      },
+      "UpdateProfileDto": {
+        "type": "object",
+        "properties": {
+          "fullName": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 100,
+            "example": "Jane Doe"
+          },
+          "avatarUrl": {
+            "type": "string",
+            "nullable": true,
+            "maxLength": 2048,
+            "format": "uri",
+            "example": "https://cdn.example.com/avatar.png",
+            "description": "HTTPS URL of the avatar image. Send null to remove it."
+          }
+        }
+      },
+      "ChangePasswordDto": {
+        "type": "object",
+        "properties": {
+          "currentPassword": {
+            "type": "string",
+            "maxLength": 128,
+            "example": "Str0ngPass!"
+          },
+          "newPassword": {
+            "type": "string",
+            "description": "New password. 8-128 characters, at least one letter and one number.",
+            "example": "N3wStr0ngPass!",
+            "minLength": 8,
+            "maxLength": 128
+          }
+        },
+        "required": [
+          "currentPassword",
+          "newPassword"
+        ]
+      },
+      "DeleteAccountDto": {
+        "type": "object",
+        "properties": {
+          "password": {
+            "type": "string",
+            "maxLength": 128,
+            "description": "Current password, required to confirm deletion",
+            "example": "Str0ngPass!"
+          }
+        },
+        "required": [
+          "password"
+        ]
+      },
+      "SessionResponseDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "userAgent": {
+            "type": "string",
+            "nullable": true,
+            "example": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"
+          },
+          "ipAddress": {
+            "type": "string",
+            "nullable": true,
+            "example": "203.0.113.42"
+          },
+          "createdAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "lastUsedAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "expiresAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "current": {
+            "type": "boolean",
+            "description": "True for the session making this request"
+          }
+        },
+        "required": [
+          "id",
+          "userAgent",
+          "ipAddress",
+          "createdAt",
+          "lastUsedAt",
+          "expiresAt",
+          "current"
+        ]
+      },
+      "PlanResponseDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number",
+            "example": 2
+          },
+          "code": {
+            "enum": [
+              "FREE",
+              "PREMIUM"
+            ],
+            "type": "string",
+            "example": "PREMIUM"
+          },
+          "name": {
+            "type": "string",
+            "example": "Premium"
+          },
+          "description": {
+            "type": "string",
+            "nullable": true,
+            "example": "For power users."
+          },
+          "priceCents": {
+            "type": "number",
+            "description": "Monthly price in minor units (cents)",
+            "example": 999
+          },
+          "currency": {
+            "type": "string",
+            "example": "USD"
+          },
+          "dailyRequestLimit": {
+            "type": "number",
+            "description": "AI requests allowed per UTC day",
+            "example": 500
+          },
+          "features": {
+            "example": [
+              "500 AI requests per day"
+            ],
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "id",
+          "code",
+          "name",
+          "description",
+          "priceCents",
+          "currency",
+          "dailyRequestLimit",
+          "features"
+        ]
+      },
+      "SubscriptionResponseDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "status": {
+            "enum": [
+              "ACTIVE",
+              "CANCELED",
+              "EXPIRED"
+            ],
+            "type": "string",
+            "example": "ACTIVE"
+          },
+          "startedAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "currentPeriodEnd": {
+            "format": "date-time",
+            "type": "string",
+            "nullable": true,
+            "description": "End of the paid period. Null for plans that never expire (Free)."
+          },
+          "canceledAt": {
+            "format": "date-time",
+            "type": "string",
+            "nullable": true
+          },
+          "plan": {
+            "$ref": "#/components/schemas/PlanResponseDto"
+          }
+        },
+        "required": [
+          "id",
+          "status",
+          "startedAt",
+          "currentPeriodEnd",
+          "canceledAt",
+          "plan"
+        ]
+      },
+      "UsageResponseDto": {
+        "type": "object",
+        "properties": {
+          "period": {
+            "type": "string",
+            "example": "DAILY",
+            "description": "Quota window (UTC day)"
+          },
+          "limit": {
+            "type": "number",
+            "example": 20
+          },
+          "used": {
+            "type": "number",
+            "example": 3
+          },
+          "remaining": {
+            "type": "number",
+            "example": 17
+          },
+          "resetsAt": {
+            "format": "date-time",
+            "type": "string",
+            "description": "When the quota resets",
+            "example": "2026-09-30T00:00:00.000Z"
+          }
+        },
+        "required": [
+          "period",
+          "limit",
+          "used",
+          "remaining",
+          "resetsAt"
+        ]
+      },
+      "SubscriptionStatusResponseDto": {
+        "type": "object",
+        "properties": {
+          "subscription": {
+            "$ref": "#/components/schemas/SubscriptionResponseDto"
+          },
+          "usage": {
+            "$ref": "#/components/schemas/UsageResponseDto"
+          }
+        },
+        "required": [
+          "subscription",
+          "usage"
+        ]
+      },
+      "ChangePlanDto": {
+        "type": "object",
+        "properties": {
+          "planCode": {
+            "enum": [
+              "FREE",
+              "PREMIUM"
+            ],
+            "type": "string",
+            "example": "PREMIUM"
+          }
+        },
+        "required": [
+          "planCode"
+        ]
+      },
+      "PublicProviderDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string",
+            "example": "Claude (Anthropic)"
+          },
+          "type": {
+            "enum": [
+              "OPENAI",
+              "ANTHROPIC",
+              "GEMINI"
+            ],
+            "type": "string"
+          },
+          "defaultModel": {
+            "type": "string",
+            "example": "claude-sonnet-5-5"
+          },
+          "models": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "isDefault": {
+            "type": "boolean"
+          },
+          "healthStatus": {
+            "enum": [
+              "UNKNOWN",
+              "HEALTHY",
+              "UNHEALTHY"
+            ],
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "type",
+          "defaultModel",
+          "models",
+          "isDefault",
+          "healthStatus"
+        ]
+      },
+      "ProviderHealthDto": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "enum": [
+              "UNKNOWN",
+              "HEALTHY",
+              "UNHEALTHY"
+            ],
+            "type": "string",
+            "example": "HEALTHY"
+          },
+          "checkedAt": {
+            "format": "date-time",
+            "type": "string",
+            "nullable": true
+          },
+          "latencyMs": {
+            "type": "number",
+            "nullable": true,
+            "example": 245
+          },
+          "error": {
+            "type": "string",
+            "nullable": true,
+            "example": null
+          }
+        },
+        "required": [
+          "status",
+          "checkedAt",
+          "latencyMs",
+          "error"
+        ]
+      },
+      "ProviderResponseDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string",
+            "example": "OpenAI"
+          },
+          "type": {
+            "enum": [
+              "OPENAI",
+              "ANTHROPIC",
+              "GEMINI"
+            ],
+            "type": "string"
+          },
+          "baseUrl": {
+            "type": "string",
+            "example": "https://api.openai.com/v1"
+          },
+          "apiKeyMasked": {
+            "type": "string",
+            "example": "••••••••3xYz"
+          },
+          "defaultModel": {
+            "type": "string",
+            "example": "gpt-5-mini"
+          },
+          "models": {
+            "example": [
+              "gpt-5",
+              "gpt-5-mini"
+            ],
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "isEnabled": {
+            "type": "boolean"
+          },
+          "isDefault": {
+            "type": "boolean"
+          },
+          "health": {
+            "$ref": "#/components/schemas/ProviderHealthDto"
+          },
+          "createdAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "updatedAt": {
+            "format": "date-time",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "type",
+          "baseUrl",
+          "apiKeyMasked",
+          "defaultModel",
+          "models",
+          "isEnabled",
+          "isDefault",
+          "health",
+          "createdAt",
+          "updatedAt"
+        ]
+      },
+      "CreateProviderDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 2,
+            "maxLength": 100,
+            "example": "OpenAI",
+            "description": "Unique display name"
+          },
+          "type": {
+            "enum": [
+              "OPENAI",
+              "ANTHROPIC",
+              "GEMINI"
+            ],
+            "type": "string",
+            "example": "OPENAI"
+          },
+          "apiKey": {
+            "type": "string",
+            "minLength": 8,
+            "maxLength": 512,
+            "description": "Vendor API key. Stored encrypted (AES-256-GCM) and never returned.",
+            "example": "sk-proj-xxxxxxxxxxxxxxxxxxxxxxxx",
+            "writeOnly": true
+          },
+          "baseUrl": {
+            "type": "string",
+            "maxLength": 2048,
+            "format": "uri",
+            "description": "Override the vendor base URL (proxy / compatible gateway). Defaults per type.",
+            "example": "https://api.openai.com/v1"
+          },
+          "models": {
+            "minItems": 1,
+            "maxItems": 50,
+            "description": "Models users may select. Defaults to the vendor catalog.",
+            "example": [
+              "gpt-5",
+              "gpt-5-mini"
+            ],
+            "type": "array",
+            "items": {
+              "type": "string",
+              "maxLength": 100,
+              "minLength": 1
+            }
+          },
+          "defaultModel": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 100,
+            "description": "Must be one of `models`.",
+            "example": "gpt-5-mini"
+          },
+          "isEnabled": {
+            "type": "boolean",
+            "default": true
+          },
+          "isDefault": {
+            "type": "boolean",
+            "default": false,
+            "description": "Make this the default provider."
+          }
+        },
+        "required": [
+          "name",
+          "type",
+          "apiKey"
+        ]
+      },
+      "UpdateProviderDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 2,
+            "maxLength": 100,
+            "example": "OpenAI",
+            "description": "Unique display name"
+          },
+          "apiKey": {
+            "type": "string",
+            "minLength": 8,
+            "maxLength": 512,
+            "description": "Vendor API key. Stored encrypted (AES-256-GCM) and never returned.",
+            "example": "sk-proj-xxxxxxxxxxxxxxxxxxxxxxxx",
+            "writeOnly": true
+          },
+          "baseUrl": {
+            "type": "string",
+            "maxLength": 2048,
+            "format": "uri",
+            "description": "Override the vendor base URL (proxy / compatible gateway). Defaults per type.",
+            "example": "https://api.openai.com/v1"
+          },
+          "models": {
+            "minItems": 1,
+            "maxItems": 50,
+            "description": "Models users may select. Defaults to the vendor catalog.",
+            "example": [
+              "gpt-5",
+              "gpt-5-mini"
+            ],
+            "type": "array",
+            "items": {
+              "type": "string",
+              "maxLength": 100,
+              "minLength": 1
+            }
+          },
+          "defaultModel": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 100,
+            "description": "Must be one of `models`.",
+            "example": "gpt-5-mini"
+          }
+        }
+      },
+      "SendMessageDto": {
+        "type": "object",
+        "properties": {
+          "conversationId": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Continue an existing conversation. Omit to start a new one."
+          },
+          "content": {
+            "type": "string",
+            "maxLength": 32000,
+            "example": "Summarize the key ideas of this page in 3 bullet points."
+          },
+          "providerId": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Provider to use. Defaults to the conversation’s provider, then the default provider."
+          },
+          "model": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 100,
+            "example": "gpt-5-mini",
+            "description": "Model to use; must be enabled for the provider."
+          },
+          "maxTokens": {
+            "type": "number",
+            "minimum": 1,
+            "maximum": 32000,
+            "example": 1024
+          },
+          "temperature": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 2,
+            "example": 0.7
+          }
+        },
+        "required": [
+          "content"
+        ]
+      },
+      "ConversationDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "title": {
+            "type": "string",
+            "example": "Summarize the key ideas of this page"
+          },
+          "providerId": {
+            "type": "string",
+            "nullable": true,
+            "format": "uuid"
+          },
+          "model": {
+            "type": "string",
+            "nullable": true,
+            "example": "gpt-5-mini"
+          },
+          "systemPrompt": {
+            "type": "string",
+            "nullable": true
+          },
+          "messageCount": {
+            "type": "number",
+            "example": 6
+          },
+          "createdAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "updatedAt": {
+            "format": "date-time",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "title",
+          "providerId",
+          "model",
+          "systemPrompt",
+          "messageCount",
+          "createdAt",
+          "updatedAt"
+        ]
+      },
+      "ChatMessageDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "conversationId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "role": {
+            "enum": [
+              "SYSTEM",
+              "USER",
+              "ASSISTANT"
+            ],
+            "type": "string",
+            "example": "ASSISTANT"
+          },
+          "content": {
+            "type": "string",
+            "example": "Here are the three key ideas: ..."
+          },
+          "providerId": {
+            "type": "string",
+            "nullable": true,
+            "format": "uuid"
+          },
+          "model": {
+            "type": "string",
+            "nullable": true,
+            "example": "gpt-5-mini"
+          },
+          "promptTokens": {
+            "type": "number",
+            "nullable": true,
+            "example": 42
+          },
+          "completionTokens": {
+            "type": "number",
+            "nullable": true,
+            "example": 128
+          },
+          "latencyMs": {
+            "type": "number",
+            "nullable": true,
+            "example": 1830
+          },
+          "createdAt": {
+            "format": "date-time",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "conversationId",
+          "role",
+          "content",
+          "providerId",
+          "model",
+          "promptTokens",
+          "completionTokens",
+          "latencyMs",
+          "createdAt"
+        ]
+      },
+      "SendMessageResponseDto": {
+        "type": "object",
+        "properties": {
+          "conversation": {
+            "$ref": "#/components/schemas/ConversationDto"
+          },
+          "userMessage": {
+            "$ref": "#/components/schemas/ChatMessageDto"
+          },
+          "assistantMessage": {
+            "$ref": "#/components/schemas/ChatMessageDto"
+          }
+        },
+        "required": [
+          "conversation",
+          "userMessage",
+          "assistantMessage"
+        ]
+      },
+      "PaginationMetaDto": {
+        "type": "object",
+        "properties": {
+          "page": {
+            "type": "number",
+            "example": 1
+          },
+          "limit": {
+            "type": "number",
+            "example": 20
+          },
+          "total": {
+            "type": "number",
+            "example": 57
+          },
+          "totalPages": {
+            "type": "number",
+            "example": 3
+          }
+        },
+        "required": [
+          "page",
+          "limit",
+          "total",
+          "totalPages"
+        ]
+      },
+      "CreateConversationDto": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200,
+            "example": "Trip planning"
+          },
+          "providerId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "model": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 100,
+            "example": "claude-sonnet-5-5"
+          },
+          "systemPrompt": {
+            "type": "string",
+            "maxLength": 4000,
+            "example": "You are a concise assistant. Answer in plain English."
+          }
+        }
+      },
+      "UpdateConversationDto": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200,
+            "example": "Trip planning"
+          },
+          "providerId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "model": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 100,
+            "example": "claude-sonnet-5-5"
+          },
+          "systemPrompt": {
+            "type": "string",
+            "maxLength": 4000,
+            "example": "You are a concise assistant. Answer in plain English."
+          }
+        }
+      },
+      "SearchQueryDto": {
+        "type": "object",
+        "properties": {
+          "query": {
+            "type": "string",
+            "maxLength": 500,
+            "example": "What is NestJS?"
+          },
+          "limit": {
+            "type": "number",
+            "default": 5,
+            "minimum": 1,
+            "maximum": 10
+          },
+          "summarize": {
+            "type": "boolean",
+            "default": false,
+            "description": "Generate an AI answer grounded in the results (with [n] citations). Consumes one AI request from the plan quota."
+          },
+          "providerId": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Provider for the summary (default if omitted)"
+          },
+          "model": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 100,
+            "example": "gpt-5-mini",
+            "description": "Model for the summary"
+          }
+        },
+        "required": [
+          "query"
+        ]
+      },
+      "SearchResultItemDto": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string",
+            "example": "NestJS"
+          },
+          "url": {
+            "type": "string",
+            "example": "https://en.wikipedia.org/wiki/NestJS"
+          },
+          "snippet": {
+            "type": "string",
+            "example": "NestJS is a server-side Node.js web framework..."
+          },
+          "source": {
+            "type": "string",
+            "example": "Wikipedia"
+          }
+        },
+        "required": [
+          "title",
+          "url",
+          "snippet"
+        ]
+      },
+      "PerformSearchResponseDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "History entry id"
+          },
+          "query": {
+            "type": "string",
+            "example": "What is NestJS?"
+          },
+          "engine": {
+            "type": "string",
+            "example": "duckduckgo"
+          },
+          "resultCount": {
+            "type": "number",
+            "example": 5
+          },
+          "results": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SearchResultItemDto"
+            }
+          },
+          "fromCache": {
+            "type": "boolean",
+            "description": "Results were served from the search cache"
+          },
+          "aiSummary": {
+            "type": "string",
+            "nullable": true,
+            "example": "NestJS is a Node.js framework for building server-side applications [1]."
+          },
+          "providerId": {
+            "type": "string",
+            "nullable": true,
+            "format": "uuid"
+          },
+          "createdAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "summaryError": {
+            "type": "string",
+            "nullable": true,
+            "description": "Why the AI summary is missing although it was requested (results still returned).",
+            "example": null
+          }
+        },
+        "required": [
+          "id",
+          "query",
+          "engine",
+          "resultCount",
+          "results",
+          "fromCache",
+          "aiSummary",
+          "providerId",
+          "createdAt",
+          "summaryError"
+        ]
+      },
+      "SearchResponseDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "History entry id"
+          },
+          "query": {
+            "type": "string",
+            "example": "What is NestJS?"
+          },
+          "engine": {
+            "type": "string",
+            "example": "duckduckgo"
+          },
+          "resultCount": {
+            "type": "number",
+            "example": 5
+          },
+          "results": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SearchResultItemDto"
+            }
+          },
+          "fromCache": {
+            "type": "boolean",
+            "description": "Results were served from the search cache"
+          },
+          "aiSummary": {
+            "type": "string",
+            "nullable": true,
+            "example": "NestJS is a Node.js framework for building server-side applications [1]."
+          },
+          "providerId": {
+            "type": "string",
+            "nullable": true,
+            "format": "uuid"
+          },
+          "createdAt": {
+            "format": "date-time",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "query",
+          "engine",
+          "resultCount",
+          "results",
+          "fromCache",
+          "aiSummary",
+          "providerId",
+          "createdAt"
+        ]
+      },
+      "RecentSearchDto": {
+        "type": "object",
+        "properties": {
+          "query": {
+            "type": "string",
+            "example": "what is nestjs?"
+          },
+          "count": {
+            "type": "number",
+            "example": 3
+          },
+          "lastSearchedAt": {
+            "format": "date-time",
+            "type": "string"
+          }
+        },
+        "required": [
+          "query",
+          "count",
+          "lastSearchedAt"
+        ]
+      },
+      "SuggestionsResponseDto": {
+        "type": "object",
+        "properties": {
+          "suggestions": {
+            "example": [
+              "nestjs",
+              "nestjs prisma",
+              "nestjs tutorial"
+            ],
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "suggestions"
+        ]
+      },
+      "UserStatsDto": {
+        "type": "object",
+        "properties": {
+          "total": {
+            "type": "number",
+            "example": 1250
+          },
+          "active": {
+            "type": "number",
+            "example": 1198
+          },
+          "verified": {
+            "type": "number",
+            "example": 1010
+          },
+          "admins": {
+            "type": "number",
+            "example": 2
+          },
+          "newLast7Days": {
+            "type": "number",
+            "example": 87
+          }
+        },
+        "required": [
+          "total",
+          "active",
+          "verified",
+          "admins",
+          "newLast7Days"
+        ]
+      },
+      "PlanCountDto": {
+        "type": "object",
+        "properties": {
+          "plan": {
+            "enum": [
+              "FREE",
+              "PREMIUM"
+            ],
+            "type": "string"
+          },
+          "activeSubscribers": {
+            "type": "number",
+            "example": 1100
+          }
+        },
+        "required": [
+          "plan",
+          "activeSubscribers"
+        ]
+      },
+      "ActivityStatsDto": {
+        "type": "object",
+        "properties": {
+          "conversations": {
+            "type": "number",
+            "example": 5400
+          },
+          "messages": {
+            "type": "number",
+            "example": 61234
+          },
+          "messagesLast24h": {
+            "type": "number",
+            "example": 2150
+          },
+          "searches": {
+            "type": "number",
+            "example": 9800
+          },
+          "searchesLast24h": {
+            "type": "number",
+            "example": 310
+          }
+        },
+        "required": [
+          "conversations",
+          "messages",
+          "messagesLast24h",
+          "searches",
+          "searchesLast24h"
+        ]
+      },
+      "ProviderStatsDto": {
+        "type": "object",
+        "properties": {
+          "total": {
+            "type": "number",
+            "example": 3
+          },
+          "enabled": {
+            "type": "number",
+            "example": 3
+          },
+          "healthy": {
+            "type": "number",
+            "example": 2
+          },
+          "defaultProvider": {
+            "type": "string",
+            "nullable": true,
+            "example": "OpenAI"
+          }
+        },
+        "required": [
+          "total",
+          "enabled",
+          "healthy",
+          "defaultProvider"
+        ]
+      },
+      "ApiStatsDto": {
+        "type": "object",
+        "properties": {
+          "requestsLast24h": {
+            "type": "number",
+            "example": 18230
+          },
+          "serverErrorsLast24h": {
+            "type": "number",
+            "example": 41
+          },
+          "errorRateLast24h": {
+            "type": "number",
+            "example": 0.0022,
+            "description": "5xx / total, last 24h"
+          },
+          "avgLatencyMsLast24h": {
+            "type": "number",
+            "nullable": true,
+            "example": 212
+          }
+        },
+        "required": [
+          "requestsLast24h",
+          "serverErrorsLast24h",
+          "errorRateLast24h",
+          "avgLatencyMsLast24h"
+        ]
+      },
+      "DashboardStatsDto": {
+        "type": "object",
+        "properties": {
+          "users": {
+            "$ref": "#/components/schemas/UserStatsDto"
+          },
+          "subscriptions": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PlanCountDto"
+            }
+          },
+          "activity": {
+            "$ref": "#/components/schemas/ActivityStatsDto"
+          },
+          "providers": {
+            "$ref": "#/components/schemas/ProviderStatsDto"
+          },
+          "api": {
+            "$ref": "#/components/schemas/ApiStatsDto"
+          },
+          "generatedAt": {
+            "format": "date-time",
+            "type": "string"
+          }
+        },
+        "required": [
+          "users",
+          "subscriptions",
+          "activity",
+          "providers",
+          "api",
+          "generatedAt"
+        ]
+      },
+      "UsagePointDto": {
+        "type": "object",
+        "properties": {
+          "date": {
+            "type": "string",
+            "example": "2026-09-29",
+            "description": "UTC day"
+          },
+          "apiRequests": {
+            "type": "number",
+            "example": 1520
+          },
+          "aiMessages": {
+            "type": "number",
+            "example": 310,
+            "description": "AI responses generated (chat)"
+          },
+          "promptTokens": {
+            "type": "number",
+            "example": 48210
+          },
+          "completionTokens": {
+            "type": "number",
+            "example": 91833
+          },
+          "searches": {
+            "type": "number",
+            "example": 87
+          },
+          "newUsers": {
+            "type": "number",
+            "example": 12
+          }
+        },
+        "required": [
+          "date",
+          "apiRequests",
+          "aiMessages",
+          "promptTokens",
+          "completionTokens",
+          "searches",
+          "newUsers"
+        ]
+      },
+      "ProviderUsageDto": {
+        "type": "object",
+        "properties": {
+          "providerId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string",
+            "example": "OpenAI"
+          },
+          "type": {
+            "enum": [
+              "OPENAI",
+              "ANTHROPIC",
+              "GEMINI"
+            ],
+            "type": "string"
+          },
+          "messages": {
+            "type": "number",
+            "example": 812
+          },
+          "searchSummaries": {
+            "type": "number",
+            "example": 64
+          },
+          "promptTokens": {
+            "type": "number",
+            "example": 120331
+          },
+          "completionTokens": {
+            "type": "number",
+            "example": 240120
+          },
+          "avgLatencyMs": {
+            "type": "number",
+            "nullable": true,
+            "example": 1840
+          }
+        },
+        "required": [
+          "providerId",
+          "name",
+          "type",
+          "messages",
+          "searchSummaries",
+          "promptTokens",
+          "completionTokens",
+          "avgLatencyMs"
+        ]
+      },
+      "EndpointUsageDto": {
+        "type": "object",
+        "properties": {
+          "method": {
+            "type": "string",
+            "example": "POST"
+          },
+          "route": {
+            "type": "string",
+            "nullable": true,
+            "example": "/api/v1/chat/messages"
+          },
+          "requests": {
+            "type": "number",
+            "example": 950
+          },
+          "clientErrors": {
+            "type": "number",
+            "example": 12,
+            "description": "4xx responses"
+          },
+          "serverErrors": {
+            "type": "number",
+            "example": 3,
+            "description": "5xx responses"
+          },
+          "avgDurationMs": {
+            "type": "number",
+            "example": 420
+          },
+          "p95DurationMs": {
+            "type": "number",
+            "example": 2310
+          }
+        },
+        "required": [
+          "method",
+          "route",
+          "requests",
+          "clientErrors",
+          "serverErrors",
+          "avgDurationMs",
+          "p95DurationMs"
+        ]
+      },
+      "RequestLogDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "example": "1024",
+            "description": "Sequential id (bigint as string)"
+          },
+          "requestId": {
+            "type": "string",
+            "nullable": true
+          },
+          "userId": {
+            "type": "string",
+            "nullable": true,
+            "format": "uuid"
+          },
+          "method": {
+            "type": "string",
+            "example": "POST"
+          },
+          "path": {
+            "type": "string",
+            "example": "/api/v1/chat/messages"
+          },
+          "route": {
+            "type": "string",
+            "nullable": true,
+            "example": "/api/v1/chat/messages"
+          },
+          "statusCode": {
+            "type": "number",
+            "example": 201
+          },
+          "durationMs": {
+            "type": "number",
+            "example": 1840
+          },
+          "ipAddress": {
+            "type": "string",
+            "nullable": true
+          },
+          "userAgent": {
+            "type": "string",
+            "nullable": true
+          },
+          "createdAt": {
+            "format": "date-time",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "requestId",
+          "userId",
+          "method",
+          "path",
+          "route",
+          "statusCode",
+          "durationMs",
+          "createdAt"
+        ]
+      },
+      "AdminUserDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "example": "3f6c1a2e-8a41-4a57-9d0f-1b8c0f2e6a11"
+          },
+          "email": {
+            "type": "string",
+            "example": "jane.doe@example.com"
+          },
+          "fullName": {
+            "type": "string",
+            "nullable": true,
+            "example": "Jane Doe"
+          },
+          "avatarUrl": {
+            "type": "string",
+            "nullable": true,
+            "example": "https://cdn.example.com/avatar.png"
+          },
+          "role": {
+            "enum": [
+              "ADMIN",
+              "USER"
+            ],
+            "type": "string",
+            "example": "USER"
+          },
+          "isActive": {
+            "type": "boolean",
+            "example": true
+          },
+          "emailVerified": {
+            "type": "boolean",
+            "example": false
+          },
+          "lastLoginAt": {
+            "format": "date-time",
+            "type": "string",
+            "nullable": true
+          },
+          "createdAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "updatedAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "plan": {
+            "nullable": true,
+            "enum": [
+              "FREE",
+              "PREMIUM"
+            ],
+            "type": "string",
+            "example": "FREE"
+          }
+        },
+        "required": [
+          "id",
+          "email",
+          "fullName",
+          "avatarUrl",
+          "role",
+          "isActive",
+          "emailVerified",
+          "lastLoginAt",
+          "createdAt",
+          "updatedAt",
+          "plan"
+        ]
+      },
+      "AdminUserStatsDto": {
+        "type": "object",
+        "properties": {
+          "conversations": {
+            "type": "number",
+            "example": 12
+          },
+          "messages": {
+            "type": "number",
+            "example": 148
+          },
+          "searches": {
+            "type": "number",
+            "example": 37
+          },
+          "activeSessions": {
+            "type": "number",
+            "example": 2
+          }
+        },
+        "required": [
+          "conversations",
+          "messages",
+          "searches",
+          "activeSessions"
+        ]
+      },
+      "AdminUserDetailDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "example": "3f6c1a2e-8a41-4a57-9d0f-1b8c0f2e6a11"
+          },
+          "email": {
+            "type": "string",
+            "example": "jane.doe@example.com"
+          },
+          "fullName": {
+            "type": "string",
+            "nullable": true,
+            "example": "Jane Doe"
+          },
+          "avatarUrl": {
+            "type": "string",
+            "nullable": true,
+            "example": "https://cdn.example.com/avatar.png"
+          },
+          "role": {
+            "enum": [
+              "ADMIN",
+              "USER"
+            ],
+            "type": "string",
+            "example": "USER"
+          },
+          "isActive": {
+            "type": "boolean",
+            "example": true
+          },
+          "emailVerified": {
+            "type": "boolean",
+            "example": false
+          },
+          "lastLoginAt": {
+            "format": "date-time",
+            "type": "string",
+            "nullable": true
+          },
+          "createdAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "updatedAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "subscription": {
+            "$ref": "#/components/schemas/SubscriptionResponseDto"
+          },
+          "usage": {
+            "$ref": "#/components/schemas/UsageResponseDto"
+          },
+          "stats": {
+            "$ref": "#/components/schemas/AdminUserStatsDto"
+          }
+        },
+        "required": [
+          "id",
+          "email",
+          "fullName",
+          "avatarUrl",
+          "role",
+          "isActive",
+          "emailVerified",
+          "lastLoginAt",
+          "createdAt",
+          "updatedAt",
+          "subscription",
+          "usage",
+          "stats"
+        ]
+      },
+      "AdminUpdateUserDto": {
+        "type": "object",
+        "properties": {
+          "role": {
+            "enum": [
+              "ADMIN",
+              "USER"
+            ],
+            "type": "string",
+            "example": "ADMIN"
+          },
+          "isActive": {
+            "type": "boolean",
+            "example": false,
+            "description": "Deactivating a user immediately revokes all of their sessions."
+          }
+        }
+      },
+      "SubscriptionOwnerDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "email": {
+            "type": "string",
+            "example": "jane.doe@example.com"
+          }
+        },
+        "required": [
+          "id",
+          "email"
+        ]
+      },
+      "AdminSubscriptionDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "status": {
+            "enum": [
+              "ACTIVE",
+              "CANCELED",
+              "EXPIRED"
+            ],
+            "type": "string",
+            "example": "ACTIVE"
+          },
+          "startedAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "currentPeriodEnd": {
+            "format": "date-time",
+            "type": "string",
+            "nullable": true,
+            "description": "End of the paid period. Null for plans that never expire (Free)."
+          },
+          "canceledAt": {
+            "format": "date-time",
+            "type": "string",
+            "nullable": true
+          },
+          "plan": {
+            "$ref": "#/components/schemas/PlanResponseDto"
+          },
+          "user": {
+            "$ref": "#/components/schemas/SubscriptionOwnerDto"
+          }
+        },
+        "required": [
+          "id",
+          "status",
+          "startedAt",
+          "currentPeriodEnd",
+          "canceledAt",
+          "plan",
+          "user"
+        ]
+      },
+      "AdminPlanDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number",
+            "example": 2
+          },
+          "code": {
+            "enum": [
+              "FREE",
+              "PREMIUM"
+            ],
+            "type": "string",
+            "example": "PREMIUM"
+          },
+          "name": {
+            "type": "string",
+            "example": "Premium"
+          },
+          "description": {
+            "type": "string",
+            "nullable": true,
+            "example": "For power users."
+          },
+          "priceCents": {
+            "type": "number",
+            "description": "Monthly price in minor units (cents)",
+            "example": 999
+          },
+          "currency": {
+            "type": "string",
+            "example": "USD"
+          },
+          "dailyRequestLimit": {
+            "type": "number",
+            "description": "AI requests allowed per UTC day",
+            "example": 500
+          },
+          "features": {
+            "example": [
+              "500 AI requests per day"
+            ],
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "isActive": {
+            "type": "boolean"
+          },
+          "activeSubscribers": {
+            "type": "number",
+            "description": "Users currently on this plan",
+            "example": 42
+          }
+        },
+        "required": [
+          "id",
+          "code",
+          "name",
+          "description",
+          "priceCents",
+          "currency",
+          "dailyRequestLimit",
+          "features",
+          "isActive",
+          "activeSubscribers"
+        ]
+      },
+      "UpdatePlanDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 50,
+            "example": "Premium"
+          },
+          "description": {
+            "type": "string",
+            "maxLength": 500,
+            "example": "For power users."
+          },
+          "priceCents": {
+            "type": "number",
+            "minimum": 0,
+            "example": 1299,
+            "description": "Monthly price in cents"
+          },
+          "dailyRequestLimit": {
+            "type": "number",
+            "minimum": 0,
+            "example": 1000,
+            "description": "AI requests per UTC day"
+          },
+          "features": {
+            "maxItems": 20,
+            "example": [
+              "1000 AI requests per day"
+            ],
+            "type": "array",
+            "items": {
+              "type": "string",
+              "maxLength": 200,
+              "minLength": 1
+            }
+          },
+          "isActive": {
+            "type": "boolean",
+            "description": "Inactive plans cannot be subscribed to."
+          }
+        }
+      },
+      "AssignPlanDto": {
+        "type": "object",
+        "properties": {
+          "planCode": {
+            "enum": [
+              "FREE",
+              "PREMIUM"
+            ],
+            "type": "string",
+            "example": "PREMIUM"
+          }
+        },
+        "required": [
+          "planCode"
+        ]
+      },
+      "DatabaseHealthDto": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "enum": [
+              "up",
+              "down"
+            ],
+            "type": "string"
+          },
+          "latencyMs": {
+            "type": "number",
+            "nullable": true,
+            "example": 3
+          },
+          "sizeBytes": {
+            "type": "number",
+            "nullable": true,
+            "example": 18874368
+          }
+        },
+        "required": [
+          "status",
+          "latencyMs",
+          "sizeBytes"
+        ]
+      },
+      "ProcessHealthDto": {
+        "type": "object",
+        "properties": {
+          "uptimeSeconds": {
+            "type": "number",
+            "example": 86400
+          },
+          "nodeVersion": {
+            "type": "string",
+            "example": "v24.15.0"
+          },
+          "environment": {
+            "type": "string",
+            "example": "production"
+          },
+          "rssBytes": {
+            "type": "number",
+            "example": 157286400
+          },
+          "heapUsedBytes": {
+            "type": "number",
+            "example": 61865984
+          },
+          "heapTotalBytes": {
+            "type": "number",
+            "example": 83886080
+          }
+        },
+        "required": [
+          "uptimeSeconds",
+          "nodeVersion",
+          "environment",
+          "rssBytes",
+          "heapUsedBytes",
+          "heapTotalBytes"
+        ]
+      },
+      "ProviderHealthSummaryDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string",
+            "example": "OpenAI"
+          },
+          "type": {
+            "enum": [
+              "OPENAI",
+              "ANTHROPIC",
+              "GEMINI"
+            ],
+            "type": "string"
+          },
+          "isEnabled": {
+            "type": "boolean"
+          },
+          "isDefault": {
+            "type": "boolean"
+          },
+          "healthStatus": {
+            "enum": [
+              "UNKNOWN",
+              "HEALTHY",
+              "UNHEALTHY"
+            ],
+            "type": "string"
+          },
+          "lastCheckedAt": {
+            "format": "date-time",
+            "type": "string",
+            "nullable": true
+          },
+          "latencyMs": {
+            "type": "number",
+            "nullable": true
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "type",
+          "isEnabled",
+          "isDefault",
+          "healthStatus",
+          "lastCheckedAt",
+          "latencyMs"
+        ]
+      },
+      "SearchHealthDto": {
+        "type": "object",
+        "properties": {
+          "engine": {
+            "type": "string",
+            "example": "duckduckgo"
+          },
+          "cachedQueries": {
+            "type": "number",
+            "example": 312
+          }
+        },
+        "required": [
+          "engine",
+          "cachedQueries"
+        ]
+      },
+      "SystemHealthDto": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "enum": [
+              "ok",
+              "degraded",
+              "down"
+            ],
+            "type": "string",
+            "description": "down: database unreachable; degraded: an enabled provider is unhealthy"
+          },
+          "database": {
+            "$ref": "#/components/schemas/DatabaseHealthDto"
+          },
+          "process": {
+            "$ref": "#/components/schemas/ProcessHealthDto"
+          },
+          "providers": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ProviderHealthSummaryDto"
+            }
+          },
+          "search": {
+            "$ref": "#/components/schemas/SearchHealthDto"
+          },
+          "timestamp": {
+            "format": "date-time",
+            "type": "string"
+          }
+        },
+        "required": [
+          "status",
+          "database",
+          "process",
+          "providers",
+          "search",
+          "timestamp"
+        ]
+      },
+      "MaintenanceResultDto": {
+        "type": "object",
+        "properties": {
+          "sessions": {
+            "type": "number",
+            "example": 120,
+            "description": "Expired or revoked sessions removed"
+          },
+          "verificationTokens": {
+            "type": "number",
+            "example": 45,
+            "description": "Used or expired verification tokens removed"
+          },
+          "searchCache": {
+            "type": "number",
+            "example": 300,
+            "description": "Expired search cache entries removed"
+          },
+          "requestLogs": {
+            "type": "number",
+            "example": 50000,
+            "description": "Request logs past the retention period removed"
+          }
+        },
+        "required": [
+          "sessions",
+          "verificationTokens",
+          "searchCache",
+          "requestLogs"
+        ]
+      }
+    }
+  }
+}

@@ -18,7 +18,7 @@ export const envValidationSchema = Joi.object({
     .required(),
 
   JWT_ACCESS_SECRET: Joi.string().min(32).required(),
-  JWT_ACCESS_TTL: Joi.string().default('15m'),
+  JWT_ACCESS_TTL_SECONDS: Joi.number().integer().min(60).default(900),
   REFRESH_TOKEN_TTL_DAYS: Joi.number().integer().min(1).default(30),
   EMAIL_VERIFICATION_TTL_HOURS: Joi.number().integer().min(1).default(24),
   PASSWORD_RESET_TTL_MINUTES: Joi.number().integer().min(5).default(30),
@@ -45,6 +45,11 @@ export const envValidationSchema = Joi.object({
   AI_REQUEST_TIMEOUT_MS: Joi.number().integer().min(1000).default(60000),
 
   SEARCH_ENGINE: Joi.string().valid('duckduckgo', 'tavily').default('duckduckgo'),
-  TAVILY_API_KEY: Joi.string().allow('').default(''),
+  TAVILY_API_KEY: Joi.string()
+    .allow('')
+    .default('')
+    .when('SEARCH_ENGINE', { is: 'tavily', then: Joi.string().required() }),
   SEARCH_CACHE_TTL_SECONDS: Joi.number().integer().min(0).default(3600),
+
+  API_LOG_RETENTION_DAYS: Joi.number().integer().min(1).default(90),
 });
