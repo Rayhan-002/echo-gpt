@@ -28,7 +28,10 @@
     "db:migrate:deploy": "prisma migrate deploy",
     "db:seed": "prisma db seed",
     "db:reset": "prisma migrate reset",
-    "db:studio": "prisma studio"
+    "db:studio": "prisma studio",
+    "docs:openapi": "nest build && node dist/scripts/export-openapi.js",
+    "docs:postman": "node scripts/generate-postman.mjs",
+    "docs:generate": "npm run docs:openapi && npm run docs:postman"
   },
   "dependencies": {
     "@nestjs/common": "11.2.6",
@@ -70,6 +73,7 @@
     "eslint-plugin-prettier": "5.5.6",
     "globals": "16.5.0",
     "jest": "29.7.0",
+    "openapi-to-postmanv2": "5.8.0",
     "prettier": "3.9.9",
     "prisma": "6.19.3",
     "source-map-support": "0.5.21",
