@@ -45,6 +45,9 @@ export const envValidationSchema = Joi.object({
   AI_REQUEST_TIMEOUT_MS: Joi.number().integer().min(1000).default(60000),
 
   SEARCH_ENGINE: Joi.string().valid('duckduckgo', 'tavily').default('duckduckgo'),
-  TAVILY_API_KEY: Joi.string().allow('').default(''),
+  TAVILY_API_KEY: Joi.string()
+    .allow('')
+    .default('')
+    .when('SEARCH_ENGINE', { is: 'tavily', then: Joi.string().required() }),
   SEARCH_CACHE_TTL_SECONDS: Joi.number().integer().min(0).default(3600),
 });
