@@ -7,11 +7,13 @@ import {
   MemoryHealthIndicator,
   PrismaHealthIndicator,
 } from '@nestjs/terminus';
+import { Public } from '../../common/decorators/auth.decorators';
 import { PrismaService } from '../../prisma/prisma.service';
 
 const HEAP_LIMIT_BYTES = 512 * 1024 * 1024;
 
 @ApiTags('Health')
+@Public()
 @SkipThrottle()
 @Controller({ path: 'health', version: VERSION_NEUTRAL })
 export class HealthController {
