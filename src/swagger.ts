@@ -36,7 +36,7 @@ export function setupSwagger(app: INestApplication): void {
     .addTag('Providers', 'Enabled AI providers available to users')
     .addTag('Chat', 'Conversations with AI providers (incl. streaming)')
     .addTag('Search', 'AI-assisted web search')
-    .addTag('Admin', 'Administrative dashboard & management (ADMIN role)')
+    .addTag('Admin: AI Providers', 'Manage AI providers, API keys, defaults and health (ADMIN)')
     .build();
 
   const document = SwaggerModule.createDocument(app, config, {

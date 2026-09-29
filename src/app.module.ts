@@ -7,6 +7,7 @@ import { RequestIdMiddleware } from './common/middleware/request-id.middleware';
 import { SecurityModule } from './common/security/security.module';
 import configuration, { AppConfig } from './config/configuration';
 import { envValidationSchema } from './config/env.validation';
+import { AiProvidersModule } from './modules/ai-providers/ai-providers.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { JwtAuthGuard } from './modules/auth/guards/jwt-auth.guard';
 import { RolesGuard } from './modules/auth/guards/roles.guard';
@@ -39,6 +40,7 @@ import { PrismaModule } from './prisma/prisma.module';
     SessionsModule,
     UsersModule,
     SubscriptionsModule,
+    AiProvidersModule,
   ],
   providers: [
     { provide: APP_FILTER, useClass: AllExceptionsFilter },
