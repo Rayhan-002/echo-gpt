@@ -9,6 +9,7 @@ import configuration, { AppConfig } from './config/configuration';
 import { envValidationSchema } from './config/env.validation';
 import { AiProvidersModule } from './modules/ai-providers/ai-providers.module';
 import { AuthModule } from './modules/auth/auth.module';
+import { ChatModule } from './modules/chat/chat.module';
 import { JwtAuthGuard } from './modules/auth/guards/jwt-auth.guard';
 import { RolesGuard } from './modules/auth/guards/roles.guard';
 import { HealthModule } from './modules/health/health.module';
@@ -41,6 +42,7 @@ import { PrismaModule } from './prisma/prisma.module';
     UsersModule,
     SubscriptionsModule,
     AiProvidersModule,
+    ChatModule,
   ],
   providers: [
     { provide: APP_FILTER, useClass: AllExceptionsFilter },
