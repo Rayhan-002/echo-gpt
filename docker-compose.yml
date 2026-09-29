@@ -1,0 +1,51 @@
+# Local / demo stack: PostgreSQL + one-off migration job + API.
+#   cp .env.example .env   (and set JWT_ACCESS_SECRET / ENCRYPTION_KEY)
+#   docker compose up --build
+# API: http://localhost:3000/api  |  Swagger: http://localhost:3000/docs
+
+services:
+  postgres:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: echogpt
+      POSTGRES_PASSWORD: echogpt
+      POSTGRES_DB: echogpt
+    ports:
+      - '5433:5432' # 5433 on the host to avoid clashing with a local PostgreSQL
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U echogpt -d echogpt']
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  migrate:
+    build:
+      context: .
+      target: migrate
+    env_file: .env
+    environment:
+      DATABASE_URL: postgresql://echogpt:echogpt@postgres:5432/echogpt?schema=public
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  api:
+    build:
+      context: .
+      target: runtime
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      DATABASE_URL: postgresql://echogpt:echogpt@postgres:5432/echogpt?schema=public
+      LOG_JSON: 'true'
+    ports:
+      - '3000:3000'
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+
+volumes:
+  pgdata:
