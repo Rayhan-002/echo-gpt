@@ -13,6 +13,7 @@ import { ChatModule } from './modules/chat/chat.module';
 import { JwtAuthGuard } from './modules/auth/guards/jwt-auth.guard';
 import { RolesGuard } from './modules/auth/guards/roles.guard';
 import { HealthModule } from './modules/health/health.module';
+import { SearchModule } from './modules/search/search.module';
 import { SessionsModule } from './modules/sessions/sessions.module';
 import { SubscriptionsModule } from './modules/subscriptions/subscriptions.module';
 import { UsersModule } from './modules/users/users.module';
@@ -43,6 +44,7 @@ import { PrismaModule } from './prisma/prisma.module';
     SubscriptionsModule,
     AiProvidersModule,
     ChatModule,
+    SearchModule,
   ],
   providers: [
     { provide: APP_FILTER, useClass: AllExceptionsFilter },
