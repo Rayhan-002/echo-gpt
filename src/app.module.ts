@@ -12,6 +12,7 @@ import { JwtAuthGuard } from './modules/auth/guards/jwt-auth.guard';
 import { RolesGuard } from './modules/auth/guards/roles.guard';
 import { HealthModule } from './modules/health/health.module';
 import { SessionsModule } from './modules/sessions/sessions.module';
+import { SubscriptionsModule } from './modules/subscriptions/subscriptions.module';
 import { UsersModule } from './modules/users/users.module';
 import { PrismaModule } from './prisma/prisma.module';
 
@@ -37,6 +38,7 @@ import { PrismaModule } from './prisma/prisma.module';
     AuthModule,
     SessionsModule,
     UsersModule,
+    SubscriptionsModule,
   ],
   providers: [
     { provide: APP_FILTER, useClass: AllExceptionsFilter },
