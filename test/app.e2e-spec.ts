@@ -210,6 +210,31 @@ describe('EchoGPT API (e2e)', () => {
       expect(messages.body.meta.total).toBe(4);
     });
 
+    it('never lets concurrent requests exceed the daily plan quota', async () => {
+      const racer = await request(http)
+        .post('/api/v1/auth/register')
+        .send({ email: `e2e-race-${Date.now()}@example.com`, password: 'E2ePassw0rd' })
+        .expect(201);
+      const token = racer.body.accessToken as string;
+      const { limit } = (
+        await request(http).get('/api/v1/subscriptions/me/usage').auth(token, { type: 'bearer' })
+      ).body as { limit: number };
+
+      const attempts = limit + 5;
+      const statuses = await Promise.all(
+        Array.from({ length: attempts }, (_, i) =>
+          fetch(`${baseUrl}/chat/messages`, {
+            method: 'POST',
+            headers: { 'content-type': 'application/json', authorization: `Bearer ${token}` },
+            body: JSON.stringify({ content: `question ${i}`, providerId }),
+          }).then((res) => res.status),
+        ),
+      );
+
+      expect(statuses.filter((status) => status === 201)).toHaveLength(limit);
+      expect(statuses.filter((status) => status === 429)).toHaveLength(5);
+    });
+
     it('keeps conversations private to their owner', async () => {
       await request(http)
         .get(`/api/v1/chat/conversations/${conversationId}`)
